@@ -21,13 +21,14 @@ function createRandomBag() {
     return bag.sort(() => Math.random() - 0.5);
 }
 
+// Fonction utilitaire pour piocher intelligemment SANS doublon vertical
 function getNextNonMatching(forbiddenValue, queue) {
     if(queue.length === 0) return Math.floor(Math.random()*8)+1;
     
     // 1. Essai direct
     if(queue[0] !== forbiddenValue) return queue.shift();
     
-    // 2. Recherche
+    // 2. Recherche plus loin
     let foundIndex = -1;
     for(let i=1; i<Math.min(queue.length, 12); i++) {
         if(queue[i] !== forbiddenValue) { foundIndex = i; break; }
@@ -35,9 +36,13 @@ function getNextNonMatching(forbiddenValue, queue) {
     
     if(foundIndex !== -1) return queue.splice(foundIndex, 1)[0];
     
-    // 3. Mutation de secours
+    // 3. Mutation de secours (V17 : Aléatoire total sauf l'interdit)
     let fallback = queue.shift();
-    if(fallback === forbiddenValue) fallback = (fallback % 8) + 1; 
+    if(fallback === forbiddenValue) {
+        // On ajoute un décalage aléatoire entre 1 et 7 pour changer la valeur
+        let offset = Math.floor(Math.random() * 7) + 1;
+        fallback = ((fallback - 1 + offset) % 8) + 1;
+    }
     return fallback;
 }
 
@@ -51,7 +56,7 @@ function saveBankroll(amount) {
 
 /* --- MOTEUR --- */
 function initGameEngine() {
-    console.log("%c --- TOPDOG V16 (MUTATION FIX) --- ", "background: #ff0000; color: #fff; font-size:20px; font-weight:bold;");
+    console.log("%c --- TOPDOG V17 (RANDOM MUTATION) --- ", "background: #0000ff; color: #fff; font-size:20px; font-weight:bold;");
     
     gameState.dogs = [];
     gameState.bankroll = loadBankroll();
@@ -76,6 +81,7 @@ function initGameEngine() {
         newGrid[r][c] = { val: 9, dogId: dog.id };
     });
 
+    // Remplissage initial
     for(let c=0; c<8; c++) {
         for(let r=0; r<8; r++) { 
             if(!newGrid[r][c]) {
@@ -166,6 +172,7 @@ function applyGravityLogic() {
             if(gameState.reserve > 0) {
                 gameState.reserve--;
                 let valueBelow = -1;
+                // On récupère la valeur du dessous (celle du sommet de la pile existante)
                 if(colItems.length > 0 && colItems[0].val !== 9) {
                     valueBelow = colItems[0].val;
                 }
@@ -188,9 +195,8 @@ function checkWinCondition() {
     return { won: false };
 }
 
-/* --- LE CORRECTIF V16 --- */
 function shuffleBoardLogic() {
-    console.log("--- BRASSAGE V16 ---");
+    console.log("--- BRASSAGE V17 ---");
     if(gameState.shuffleLeft <= 0) return false;
     gameState.shuffleLeft--;
 
@@ -207,16 +213,17 @@ function shuffleBoardLogic() {
     
     numbers.forEach(numObj => {
         let attempts = 0;
-        // LE FIX EST ICI : on utilise numObj.val au lieu de numObj
+        // Check doublon
         while (columns[colPtr].length > 0 && columns[colPtr][columns[colPtr].length-1].val === numObj.val && attempts < 8) {
              colPtr = (colPtr + 1) % 8; attempts++;
         }
         
-        // SÉCURITÉ DE DERNIER RECOURS (MUTATION)
-        // Si après 8 essais on est toujours sur un doublon (ex: que des 7 partout),
-        // on transforme le chiffre pour briser la chaîne !
+        // SÉCURITÉ V17 (MUTATION RANDOM)
         if(columns[colPtr].length > 0 && columns[colPtr][columns[colPtr].length-1].val === numObj.val) {
-            numObj.val = (numObj.val % 8) + 1; // 7 devient 8, 8 devient 1...
+            // On choisit un décalage random entre 1 et 7
+            let offset = Math.floor(Math.random() * 7) + 1;
+            // On applique le décalage pour obtenir une nouvelle valeur valide [1-8]
+            numObj.val = ((numObj.val - 1 + offset) % 8) + 1;
         }
 
         if(columns[colPtr].length < 7) columns[colPtr].push(numObj);
