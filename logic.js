@@ -14,7 +14,7 @@ let gameState = {
 
 /* --- MOTEUR --- */
 function initGameEngine() {
-    console.log("%c --- TOPDOG V6 (SPACING) CHARGÉ --- ", "background: #000; color: #00ffff; font-size:20px");
+    console.log("%c --- TOPDOG V7 (STRATEGIC) CHARGÉ --- ", "background: #6600cc; color: #fff; font-size:20px; padding: 5px;");
     
     // Setup Chiens
     gameState.dogs = [];
@@ -29,7 +29,7 @@ function initGameEngine() {
 
     // Setup Grille (Départ sécurisé : Espacé)
     let newGrid = Array(8).fill().map(() => Array(8).fill(0));
-    // On force l'espacement dès le début (ex: 0, 2, 4, 6 ou 1, 3, 5, 7)
+    // Espacement forcé
     let startCols = Math.random() > 0.5 ? [0, 2, 4, 6] : [1, 3, 5, 7];
     
     gameState.dogs.forEach((dog, i) => {
@@ -46,6 +46,10 @@ function initGameEngine() {
     }
 
     gameState.grid = newGrid;
+    
+    // LA TOUCHE MAGIQUE : On force des solutions dès le début
+    injectStrategicKeys();
+
     gameState.score = 0;
     gameState.reserve = CONFIG.initialReserve;
     gameState.shuffleLeft = 1;
@@ -54,6 +58,52 @@ function initGameEngine() {
     gameState.reserveQueue = Array(60).fill(0).map(() => Math.floor(Math.random()*8)+1);
 
     return gameState;
+}
+
+/* --- L'INTELLIGENCE STRATÉGIQUE (NOUVEAU) --- */
+function injectStrategicKeys() {
+    // Cette fonction parcourt la grille, trouve les chiens bloqués,
+    // et change un chiffre voisin pour qu'il soit le complémentaire (la clé).
+    
+    for(let r=0; r<7; r++) { // Pas besoin de checker la dernière ligne
+        for(let c=0; c<8; c++) {
+            // Si c'est un chien
+            if(gameState.grid[r][c].val === 9) {
+                // Regarder juste en dessous (le Bloqueur)
+                let blocker = gameState.grid[r+1][c];
+                
+                // Si le bloqueur est un chiffre (pas un chien, pas vide)
+                if(blocker.val > 0 && blocker.val < 9) {
+                    let needed = 9 - blocker.val;
+                    
+                    // On cherche si le 'needed' est déjà autour du bloqueur (gauche/droite/diagonales bas)
+                    let hasKey = false;
+                    
+                    // Check Gauche (r+1, c-1)
+                    if(c > 0 && gameState.grid[r+1][c-1].val === needed) hasKey = true;
+                    // Check Droite (r+1, c+1)
+                    if(c < 7 && gameState.grid[r+1][c+1].val === needed) hasKey = true;
+                    // Check Bas (r+2, c) - Parfois utile
+                    if(r < 6 && gameState.grid[r+2][c].val === needed) hasKey = true;
+
+                    // SI PAS DE CLÉ, ON EN CRÉE UNE !
+                    if(!hasKey) {
+                        // On choisit un voisin au hasard (Gauche ou Droite) pour le transformer
+                        let neighbors = [];
+                        if(c > 0 && gameState.grid[r+1][c-1].val !== 9) neighbors.push({r: r+1, c: c-1});
+                        if(c < 7 && gameState.grid[r+1][c+1].val !== 9) neighbors.push({r: r+1, c: c+1});
+                        
+                        if(neighbors.length > 0) {
+                            let target = neighbors[Math.floor(Math.random() * neighbors.length)];
+                            // Transformation Divine
+                            gameState.grid[target.r][target.c] = { val: needed, dogId: null };
+                            // console.log(`Stratégie injectée pour le chien en ${r},${c}: Clé ${needed} placée en ${target.r},${target.c}`);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 function checkMoveValidity(r1, c1, r2, c2) {
@@ -109,9 +159,9 @@ function checkWinCondition() {
     return { won: false };
 }
 
-/* --- LE BRASSAGE V6 (ESPACEMENT GARANTI) --- */
+/* --- LE BRASSAGE V7 (ESPACEMENT + STRATÉGIE) --- */
 function shuffleBoardLogic() {
-    console.log("--- BRASSAGE V6 (SPACING) ---");
+    console.log("--- BRASSAGE V7 ---");
     if(gameState.shuffleLeft <= 0) return false;
     gameState.shuffleLeft--;
 
@@ -131,45 +181,28 @@ function shuffleBoardLogic() {
     // 3. Créer 8 colonnes
     let columns = Array(8).fill().map(() => []);
 
-    // 4. Remplir avec les chiffres d'abord (Socle)
+    // 4. Remplir socle
     let colIdx = 0;
     numbers.forEach(num => {
         if(columns[colIdx].length < 7) columns[colIdx].push(num);
         colIdx = (colIdx + 1) % 8;
     });
 
-    // 5. SÉLECTION DES COLONNES POUR LES CHIENS (NOUVEAU)
-    // On veut 4 colonnes qui ne sont PAS adjacentes (idx et idx+1)
-    // Stratégie simple : On essaie [0, 2, 4, 6] ou [1, 3, 5, 7] en priorité
-    // Ou un mélange aléatoire mais espacé.
-    
-    let possibleSets = [
-        [0, 2, 4, 6],
-        [1, 3, 5, 7],
-        [0, 2, 5, 7],
-        [0, 2, 4, 7],
-        [0, 3, 5, 7]
-    ];
-    // On choisit un set au hasard
+    // 5. Sélection Colonnes Espacées
+    let possibleSets = [[0, 2, 4, 6], [1, 3, 5, 7], [0, 2, 5, 7], [0, 3, 5, 7]];
     let chosenCols = possibleSets[Math.floor(Math.random() * possibleSets.length)];
-    
-    // On mélange l'ordre d'attribution pour que le Chien 1 ne soit pas toujours à gauche
     shuffle(chosenCols);
 
     dogs.forEach((dog, i) => {
-        let targetCol = chosenCols[i]; // Utilise une des colonnes espacées
-        
-        // SÉCURITÉ ANTI-WIN : Il faut au moins 3 items sous le chien
-        // Si la colonne choisie est trop vide, on la remplit
-        while(columns[targetCol].length < 3) {
+        let targetCol = chosenCols[i];
+        while(columns[targetCol].length < 3) { // Sécurité hauteur
             let filler = Math.floor(Math.random() * 8) + 1;
             columns[targetCol].unshift({val: filler, dogId: null});
         }
-        // On pose le chien
         columns[targetCol].push(dog);
     });
 
-    // 6. Reconstruction Grille
+    // 6. Reconstruction
     let newGrid = Array(8).fill().map(() => Array(8).fill(0));
     for(let c=0; c<8; c++) {
         let stack = columns[c];
@@ -180,5 +213,10 @@ function shuffleBoardLogic() {
     }
 
     gameState.grid = newGrid;
+    
+    // 7. INJECTION DE STRATÉGIE (Le Fix pour ton problème)
+    // Après avoir mélangé, on s'assure que les chiens ne sont pas bloqués bêtement
+    injectStrategicKeys();
+    
     return true;
 }
