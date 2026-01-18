@@ -2,13 +2,52 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>TOPDOG</title>
     <link rel="manifest" href="./manifest.json">
-    <link rel="stylesheet" href="style.css?v=5"> <link rel="icon" type="image/png" href="./icon-dog-192.png">
+    <link rel="stylesheet" href="style.css?v=13"> 
+    <link rel="icon" type="image/png" href="./icon-dog-192.png">
     <link rel="apple-touch-icon" href="./icon-dog-192.png">
+    
+    <style>
+        /* Bloquer la sélection de texte et le scroll élastique */
+        body {
+            overscroll-behavior: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Écran de démarrage */
+        #start-screen {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: #050505; z-index: 999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .logo-title {
+            font-size: 3em; font-weight: 900; font-style: italic;
+            background: linear-gradient(45deg, #fff, #888);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 20px; letter-spacing: 4px;
+        }
+        .btn-start {
+            background: #e67e22; color: #fff; border: none;
+            padding: 15px 40px; font-size: 1.5em; font-weight: bold;
+            border-radius: 50px; cursor: pointer;
+            box-shadow: 0 0 20px rgba(230, 126, 34, 0.4);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    </style>
 </head>
 <body>
+
+    <div id="start-screen">
+        <div class="logo-title">TOPDOG</div>
+        <div style="color:#666; margin-bottom:30px; font-family:monospace;">V1.0 - NEON EDITION</div>
+        <button class="btn-start" onclick="launchApp()">JOUER</button>
+    </div>
 
     <div class="top-bar">
         <h1>TOPDOG</h1>
@@ -17,7 +56,7 @@
 
     <div id="betting-board"></div>
 
-   <div class="hud">
+    <div class="hud">
         <div class="hud-item">
             <span class="hud-label">RÉSERVE</span>
             <span id="reserve-count" class="hud-value">40</span>
@@ -34,16 +73,7 @@
 
     <div class="game-container">
         <div id="game-grid"></div>
-        
-        <div id="loading-overlay">
-            <div style="color:#ff9f43; margin-bottom:10px;">PRÉPARATION DE LA COURSE...</div>
-        </div>
-
-        <div id="message-overlay">
-            <h2 id="msg-title">TITRE</h2>
-            <div id="msg-content"></div>
-            <div id="overlay-buttons" style="margin-top:20px;"></div>
-        </div>
+        <div id="message-overlay"></div>
     </div>
 
     <div class="controls">
@@ -52,7 +82,22 @@
         <button id="btn-reset">RESET</button>
     </div>
 
-   <script src="logic.js?v=13"></script>
+    <script>
+        function launchApp() {
+            // Cache l'écran titre
+            document.getElementById('start-screen').style.display = 'none';
+            // Initialise l'Audio Context (nécessaire sur mobile après un clic utilisateur)
+            if(window.audioCtx && window.audioCtx.state === 'suspended') {
+                window.audioCtx.resume();
+            }
+            // Lance le jeu via ui.js (qui appelle logic.js)
+            if(typeof startGame === 'function') {
+                startGame();
+            }
+        }
+    </script>
+
+    <script src="logic.js?v=13"></script>
     <script src="ui.js?v=13"></script>
 
 </body>
