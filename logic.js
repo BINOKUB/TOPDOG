@@ -1,7 +1,7 @@
 /* --- CONFIGURATION DU JEU --- */
 const CONFIG = {
     gridSize: 8,
-    initialReserve: 60, // Augmenté pour correspondre à ton ressenti
+    initialReserve: 60,
     timeLimit: 120, 
     dogNames: ["SPARTACUS", "TITAN", "HURRICANE", "VIPER", "GHOST", "BANDIT", "REX", "CHAOS", "ZEUS", "TANK"]
 };
@@ -12,15 +12,12 @@ let gameState = {
     dogs: [], status: 'idle', timer: null, timeLeft: 0, reserveQueue: []
 };
 
-/* --- OUTILS DE GÉNÉRATION (NOUVEAU) --- */
-// Système de "Sac" pour éviter les répétitions (Tetris Style)
+/* --- OUTILS DE GÉNÉRATION --- */
 function createRandomBag() {
     let bag = [];
-    // On met 5 exemplaires de chaque chiffre (1 à 8) dans le sac
     for(let i=1; i<=8; i++) {
         for(let j=0; j<5; j++) bag.push(i);
     }
-    // Mélange du sac
     return bag.sort(() => Math.random() - 0.5);
 }
 
@@ -32,11 +29,9 @@ function getBalancedNumber() {
 
 /* --- MOTEUR --- */
 function initGameEngine() {
-    console.log("%c --- TOPDOG V8 (BALANCED) CHARGÉ --- ", "background: #008000; color: #fff; font-size:20px;");
+    console.log("%c --- TOPDOG V10 (GRAVITY GUARD) --- ", "background: #e74c3c; color: #fff; font-size:20px; font-weight:bold;");
     
-    currentBag = createRandomBag(); // Reset du sac
-
-    // Setup Chiens
+    currentBag = createRandomBag();
     gameState.dogs = [];
     let usedNames = [];
     for(let i=1; i<=4; i++) {
@@ -47,10 +42,7 @@ function initGameEngine() {
         gameState.dogs.push({ id: i, name: name, bet: bet });
     }
 
-    // Setup Grille
     let newGrid = Array(8).fill().map(() => Array(8).fill(0));
-    
-    // 1. Placer les Chiens (Espacés)
     let startCols = Math.random() > 0.5 ? [0, 2, 4, 6] : [1, 3, 5, 7];
     gameState.dogs.forEach((dog, i) => {
         let c = startCols[i];
@@ -58,35 +50,26 @@ function initGameEngine() {
         newGrid[r][c] = { val: 9, dogId: dog.id };
     });
 
-    // 2. Remplir avec "Anti-Doublon Vertical"
     for(let c=0; c<8; c++) {
         for(let r=0; r<8; r++) {
             if(!newGrid[r][c]) {
                 let num;
                 let attempts = 0;
-                // On essaie de piocher un nombre qui n'est pas identique à celui du dessus
                 do {
                     num = getBalancedNumber();
-                    // Remettre dans le sac si ça ne va pas (sauf si on tourne en rond)
                     if(r > 0 && newGrid[r-1][c].val === num && attempts < 5) {
-                        currentBag.unshift(num); // On remet en bas du sac
-                        currentBag.sort(() => Math.random() - 0.5); // On remélange un peu
-                        num = null; // On recommence
-                        attempts++;
+                        currentBag.unshift(num); 
+                        currentBag.sort(() => Math.random() - 0.5);
+                        num = null; attempts++;
                     }
                 } while (num === null && attempts < 5);
-                
-                // Si après 5 essais on est bloqué, on prend le num quand même (rare)
                 if(num === null) num = Math.floor(Math.random()*8)+1;
-
                 newGrid[r][c] = { val: num, dogId: null };
             }
         }
     }
 
     gameState.grid = newGrid;
-    
-    // Injection des clés stratégiques pour aider les chiens
     injectStrategicKeys();
 
     gameState.score = 0;
@@ -95,9 +78,8 @@ function initGameEngine() {
     gameState.status = 'playing';
     gameState.timeLeft = CONFIG.timeLimit;
     
-    // Génération de la file d'attente (aussi équilibrée)
     gameState.reserveQueue = [];
-    for(let k=0; k<8; k++) gameState.reserveQueue = gameState.reserveQueue.concat(createRandomBag());
+    for(let k=0; k<10; k++) gameState.reserveQueue = gameState.reserveQueue.concat(createRandomBag());
 
     return gameState;
 }
@@ -154,27 +136,47 @@ function processMatch(r1, c1, r2, c2) {
     return true;
 }
 
+/* --- LE CORRECTIF MAJEUR : GRAVITÉ SÉCURISÉE --- */
 function applyGravityLogic() {
     for(let c=0; c<8; c++) {
+        // 1. Récupérer tout ce qui est solide (pas de 0) dans la colonne
         let colItems = [];
-        for(let r=0; r<8; r++) if(gameState.grid[r][c].val !== 0) colItems.push(gameState.grid[r][c]);
+        for(let r=0; r<8; r++) {
+            if(gameState.grid[r][c].val !== 0) {
+                // On crée une COPIE de l'objet pour éviter les bugs de référence
+                colItems.push({...gameState.grid[r][c]});
+            }
+        }
         
+        // 2. Remplir le vide au sommet
         while(colItems.length < 8) {
             let newVal = 0;
             if(gameState.reserve > 0) {
                 gameState.reserve--;
-                // Utilisation de la file équilibrée
+                
+                // SÉCURITÉ : Si la file est vide, on en recrée une
                 if(gameState.reserveQueue.length === 0) gameState.reserveQueue = createRandomBag();
-                newVal = gameState.reserveQueue.shift();
+                
+                let candidate = gameState.reserveQueue.shift();
+                // SÉCURITÉ ULTIME : Si jamais shift() renvoie 'undefined' ou 0, on force un chiffre
+                if(!candidate || candidate === 0) candidate = Math.floor(Math.random()*8)+1;
+                
+                newVal = candidate;
             }
+            // On ajoute en haut (unshift)
             colItems.unshift({ val: newVal, dogId: null });
         }
-        for(let r=0; r<8; r++) gameState.grid[r][c] = colItems[r];
+
+        // 3. Réappliquer proprement à la grille
+        for(let r=0; r<8; r++) {
+            gameState.grid[r][c] = colItems[r];
+        }
     }
 }
 
 function checkWinCondition() {
     for(let c=0; c<8; c++) {
+        // La victoire n'est validée QUE si le chien est physiquement sur la ligne 7
         let cell = gameState.grid[7][c]; 
         if(cell.val === 9) {
             gameState.status = 'won';
@@ -184,9 +186,8 @@ function checkWinCondition() {
     return { won: false };
 }
 
-/* --- BRASSAGE V8 (Anti-Doublon + Espacement) --- */
 function shuffleBoardLogic() {
-    console.log("--- BRASSAGE V8 ---");
+    console.log("--- BRASSAGE V10 ---");
     if(gameState.shuffleLeft <= 0) return false;
     gameState.shuffleLeft--;
 
@@ -197,34 +198,20 @@ function shuffleBoardLogic() {
         else if (item.val !== 0) numbers.push(item);
     }
 
-    // Mélange intelligent pour casser les répétitions dans la liste 'numbers'
-    // On recrée un sac parfait pour la redistribution si possible
     numbers.sort(() => Math.random() - 0.5);
-
     let columns = Array(8).fill().map(() => []);
 
-    // Remplissage équilibré (Distribution horizontale)
-    // Au lieu de remplir une colonne puis l'autre, on remplit ligne par ligne
-    // pour éviter les concentrations
     let colPtr = 0;
     numbers.forEach(num => {
-        // Petit check pour éviter doublon vertical immédiat dans la colonne
         let stack = columns[colPtr];
-        if(stack.length > 0 && stack[stack.length-1].val === num) {
-             // Si doublon, on essaie la colonne suivante
-             colPtr = (colPtr + 1) % 8;
-        }
-        
-        if(columns[colPtr].length < 7) {
-            columns[colPtr].push(num);
-        }
+        if(stack.length > 0 && stack[stack.length-1].val === num) colPtr = (colPtr + 1) % 8;
+        if(columns[colPtr].length < 7) columns[colPtr].push(num);
         colPtr = (colPtr + 1) % 8;
     });
 
-    // Placement Chiens (Espacés)
     let possibleSets = [[0, 2, 4, 6], [1, 3, 5, 7], [0, 2, 5, 7]];
     let chosenCols = possibleSets[Math.floor(Math.random() * possibleSets.length)];
-    chosenCols.sort(() => Math.random() - 0.5); // Mélange
+    chosenCols.sort(() => Math.random() - 0.5);
 
     dogs.forEach((dog, i) => {
         let targetCol = chosenCols[i];
