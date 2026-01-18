@@ -1,7 +1,7 @@
 /* --- CONFIGURATION DU JEU --- */
 const CONFIG = {
     gridSize: 8,
-    initialReserve: 40, // RETOUR À 40 (Le "Sweet Spot" de difficulté)
+    initialReserve: 40, 
     timeLimit: 120, 
     dogNames: ["SPARTACUS", "TITAN", "HURRICANE", "VIPER", "GHOST", "BANDIT", "REX", "CHAOS", "ZEUS", "TANK"]
 };
@@ -15,9 +15,8 @@ let gameState = {
 /* --- OUTILS --- */
 function createRandomBag() {
     let bag = [];
-    for(let i=1; i<=8; i++) {
-        for(let j=0; j<5; j++) bag.push(i); // 5 exemplaires de chaque
-    }
+    // Un sac bien mélangé (5 de chaque)
+    for(let i=1; i<=8; i++) for(let j=0; j<5; j++) bag.push(i);
     return bag.sort(() => Math.random() - 0.5);
 }
 
@@ -29,7 +28,7 @@ function getBalancedNumber() {
 
 /* --- MOTEUR --- */
 function initGameEngine() {
-    console.log("%c --- TOPDOG V11 (HARDCORE 40) --- ", "background: #000; color: #ff0000; font-size:20px; font-weight:bold;");
+    console.log("%c --- TOPDOG V13 (SMART GRAVITY) --- ", "background: #ff00ff; color: #fff; font-size:20px; font-weight:bold;");
     
     currentBag = createRandomBag();
     gameState.dogs = [];
@@ -51,6 +50,7 @@ function initGameEngine() {
         newGrid[r][c] = { val: 9, dogId: dog.id };
     });
 
+    // Remplissage initial avec Anti-Doublon strict
     for(let c=0; c<8; c++) {
         for(let r=0; r<8; r++) {
             if(!newGrid[r][c]) {
@@ -58,12 +58,14 @@ function initGameEngine() {
                 let attempts = 0;
                 do {
                     num = getBalancedNumber();
-                    if(r > 0 && newGrid[r-1][c].val === num && attempts < 5) {
-                        currentBag.unshift(num); 
+                    // On vérifie le haut (r-1)
+                    if(r > 0 && newGrid[r-1][c].val === num && attempts < 10) {
+                        currentBag.unshift(num); // Remet dans le sac
                         currentBag.sort(() => Math.random() - 0.5);
                         num = null; attempts++;
                     }
-                } while (num === null && attempts < 5);
+                } while (num === null && attempts < 10);
+                
                 if(num === null) num = Math.floor(Math.random()*8)+1;
                 newGrid[r][c] = { val: num, dogId: null };
             }
@@ -93,7 +95,6 @@ function injectStrategicKeys() {
                 if(blocker.val > 0 && blocker.val < 9) {
                     let needed = 9 - blocker.val;
                     let hasKey = false;
-                    // Check voisins
                     if(c > 0 && gameState.grid[r+1][c-1].val === needed) hasKey = true;
                     if(c < 7 && gameState.grid[r+1][c+1].val === needed) hasKey = true;
                     if(r < 6 && gameState.grid[r+2][c].val === needed) hasKey = true;
@@ -137,33 +138,48 @@ function processMatch(r1, c1, r2, c2) {
     return true;
 }
 
-/* --- GRAVITÉ AVEC GESTION DU VIDE --- */
+/* --- LE COEUR DU CORRECTIF V13 : GRAVITÉ INTELLIGENTE --- */
 function applyGravityLogic() {
     for(let c=0; c<8; c++) {
         let colItems = [];
-        // 1. On garde ce qui est solide
+        // 1. Garder les éléments solides
         for(let r=0; r<8; r++) {
             if(gameState.grid[r][c].val !== 0) {
                 colItems.push({...gameState.grid[r][c]});
             }
         }
         
-        // 2. On remplit le sommet
+        // 2. Remplir le vide au sommet avec INTELLIGENCE
         while(colItems.length < 8) {
-            let newVal = 0; // Par défaut c'est du VIDE (0)
+            let newVal = 0;
             
-            // Si on a encore du carburant
             if(gameState.reserve > 0) {
                 gameState.reserve--;
-                if(gameState.reserveQueue.length === 0) gameState.reserveQueue = createRandomBag();
-                let candidate = gameState.reserveQueue.shift();
-                if(!candidate || candidate === 0) candidate = Math.floor(Math.random()*8)+1;
-                newVal = candidate;
+                if(gameState.reserveQueue.length < 5) gameState.reserveQueue = gameState.reserveQueue.concat(createRandomBag());
+                
+                // --- ALGORITHME ANTI-PILE ---
+                // On regarde quel est le chiffre actuellement au sommet de la pile (celui sur lequel on va tomber)
+                // S'il n'y a rien (colonne vide), on compare à rien (0)
+                let topValue = colItems.length > 0 ? colItems[0].val : -1;
+                
+                // On cherche dans les 8 prochains chiffres de la réserve un candidat qui N'EST PAS 'topValue'
+                let foundIdx = -1;
+                for(let i=0; i<Math.min(gameState.reserveQueue.length, 8); i++) {
+                    if(gameState.reserveQueue[i] !== topValue) {
+                        foundIdx = i;
+                        break;
+                    }
+                }
+                
+                if(foundIdx !== -1) {
+                    // On a trouvé un bon candidat ! On le prend et on l'enlève de la file
+                    newVal = gameState.reserveQueue.splice(foundIdx, 1)[0];
+                } else {
+                    // Cas désespéré (très rare): on prend le premier quand même
+                    newVal = gameState.reserveQueue.shift();
+                }
             }
-            // Sinon newVal reste à 0 (Le ciel tombe)
-            
-            // On ajoute en HAUT de la colonne (unshift)
-            // Donc le 0 sera en index 0 (Haut de l'écran)
+            // On ajoute en haut
             colItems.unshift({ val: newVal, dogId: null });
         }
 
@@ -183,7 +199,7 @@ function checkWinCondition() {
 }
 
 function shuffleBoardLogic() {
-    console.log("--- BRASSAGE V11 ---");
+    console.log("--- BRASSAGE V13 ---");
     if(gameState.shuffleLeft <= 0) return false;
     gameState.shuffleLeft--;
 
@@ -199,8 +215,14 @@ function shuffleBoardLogic() {
 
     let colPtr = 0;
     numbers.forEach(num => {
-        let stack = columns[colPtr];
-        if(stack.length > 0 && stack[stack.length-1].val === num) colPtr = (colPtr + 1) % 8;
+        // Anti-stacking simple pour le brassage
+        let attempts = 0;
+        // Si la colonne actuelle a le même chiffre au sommet, on essaie la suivante
+        while (columns[colPtr].length > 0 && columns[colPtr][columns[colPtr].length-1].val === num && attempts < 8) {
+             colPtr = (colPtr + 1) % 8;
+             attempts++;
+        }
+        
         if(columns[colPtr].length < 7) columns[colPtr].push(num);
         colPtr = (colPtr + 1) % 8;
     });
