@@ -14,9 +14,7 @@ let gameState = {
 
 /* --- MOTEUR --- */
 function initGameEngine() {
-    // PREUVE DE MISE A JOUR : Change le titre temporairement
-    // Si tu ne vois pas ce log, le fichier est vieux
-    console.log("%c --- TOPDOG V5 CHARGÉ --- ", "background: #222; color: #bada55; font-size:20px");
+    console.log("%c --- TOPDOG V6 (SPACING) CHARGÉ --- ", "background: #000; color: #00ffff; font-size:20px");
     
     // Setup Chiens
     gameState.dogs = [];
@@ -29,13 +27,13 @@ function initGameEngine() {
         gameState.dogs.push({ id: i, name: name, bet: bet });
     }
 
-    // Setup Grille (Départ sécurisé : Chiens en haut)
+    // Setup Grille (Départ sécurisé : Espacé)
     let newGrid = Array(8).fill().map(() => Array(8).fill(0));
-    let columns = [0, 2, 4, 6]; // On espace les chiens au départ
+    // On force l'espacement dès le début (ex: 0, 2, 4, 6 ou 1, 3, 5, 7)
+    let startCols = Math.random() > 0.5 ? [0, 2, 4, 6] : [1, 3, 5, 7];
     
-    // Placer les chiens Ligne 0 ou 1
     gameState.dogs.forEach((dog, i) => {
-        let c = columns[i] !== undefined ? columns[i] : i; // Fallback
+        let c = startCols[i];
         let r = Math.floor(Math.random() * 2); // Ligne 0 ou 1
         newGrid[r][c] = { val: 9, dogId: dog.id };
     });
@@ -60,7 +58,7 @@ function initGameEngine() {
 
 function checkMoveValidity(r1, c1, r2, c2) {
     let dr = Math.abs(r1 - r2), dc = Math.abs(c1 - c2);
-    if(dr <= 1 && dc <= 1) return true; // Adjacents
+    if(dr <= 1 && dc <= 1) return true; 
 
     // Ligne de vue
     let stepR = 0, stepC = 0;
@@ -102,7 +100,7 @@ function applyGravityLogic() {
 
 function checkWinCondition() {
     for(let c=0; c<8; c++) {
-        let cell = gameState.grid[7][c]; // Ligne du bas
+        let cell = gameState.grid[7][c]; 
         if(cell.val === 9) {
             gameState.status = 'won';
             return { won: true, dogId: cell.dogId };
@@ -111,9 +109,9 @@ function checkWinCondition() {
     return { won: false };
 }
 
-/* --- LE BRASSAGE V5 (BUNKER LOGIC) --- */
+/* --- LE BRASSAGE V6 (ESPACEMENT GARANTI) --- */
 function shuffleBoardLogic() {
-    console.log("--- BRASSAGE V5 ACTIVÉ ---");
+    console.log("--- BRASSAGE V6 (SPACING) ---");
     if(gameState.shuffleLeft <= 0) return false;
     gameState.shuffleLeft--;
 
@@ -133,42 +131,50 @@ function shuffleBoardLogic() {
     // 3. Créer 8 colonnes
     let columns = Array(8).fill().map(() => []);
 
-    // 4. Remplir avec les chiffres d'abord
+    // 4. Remplir avec les chiffres d'abord (Socle)
     let colIdx = 0;
     numbers.forEach(num => {
         if(columns[colIdx].length < 7) columns[colIdx].push(num);
         colIdx = (colIdx + 1) % 8;
     });
 
-    // 5. Placer les Chiens (1 PAR COLONNE MAX)
-    // On choisit 4 colonnes distinctes qui sont les plus remplies (pour mettre les chiens haut)
-    // On crée un tableau d'index [0,1,2...7], on le trie par taille de colonne, on prend les 4 premiers
-    let bestCols = [0,1,2,3,4,5,6,7]
-        .sort((a,b) => columns[b].length - columns[a].length)
-        .slice(0, dogs.length); // On prend juste assez de colonnes pour les chiens
+    // 5. SÉLECTION DES COLONNES POUR LES CHIENS (NOUVEAU)
+    // On veut 4 colonnes qui ne sont PAS adjacentes (idx et idx+1)
+    // Stratégie simple : On essaie [0, 2, 4, 6] ou [1, 3, 5, 7] en priorité
+    // Ou un mélange aléatoire mais espacé.
     
-    // On mélange ces colonnes pour ne pas que le chien 1 aille toujours colonne 0
-    shuffle(bestCols);
+    let possibleSets = [
+        [0, 2, 4, 6],
+        [1, 3, 5, 7],
+        [0, 2, 5, 7],
+        [0, 2, 4, 7],
+        [0, 3, 5, 7]
+    ];
+    // On choisit un set au hasard
+    let chosenCols = possibleSets[Math.floor(Math.random() * possibleSets.length)];
+    
+    // On mélange l'ordre d'attribution pour que le Chien 1 ne soit pas toujours à gauche
+    shuffle(chosenCols);
 
     dogs.forEach((dog, i) => {
-        let targetCol = bestCols[i]; // Colonne unique garantie
+        let targetCol = chosenCols[i]; // Utilise une des colonnes espacées
         
         // SÉCURITÉ ANTI-WIN : Il faut au moins 3 items sous le chien
+        // Si la colonne choisie est trop vide, on la remplit
         while(columns[targetCol].length < 3) {
             let filler = Math.floor(Math.random() * 8) + 1;
-            // On ajoute SOUS le chien (au début du tableau stack)
             columns[targetCol].unshift({val: filler, dogId: null});
         }
-        // On pose le chien SUR le stack
+        // On pose le chien
         columns[targetCol].push(dog);
     });
 
-    // 6. Reconstruction Grille (Bas vers Haut)
+    // 6. Reconstruction Grille
     let newGrid = Array(8).fill().map(() => Array(8).fill(0));
     for(let c=0; c<8; c++) {
         let stack = columns[c];
         for(let i=0; i<stack.length; i++) {
-            let row = 7 - i; // Index 0 = Ligne 7 (Fond)
+            let row = 7 - i; 
             if(row >= 0) newGrid[row][c] = stack[i];
         }
     }
