@@ -1,7 +1,7 @@
 /* --- CONFIGURATION DU JEU --- */
 const CONFIG = {
     gridSize: 8,
-    initialReserve: 60,
+    initialReserve: 40, // RETOUR À 40 (Le "Sweet Spot" de difficulté)
     timeLimit: 120, 
     dogNames: ["SPARTACUS", "TITAN", "HURRICANE", "VIPER", "GHOST", "BANDIT", "REX", "CHAOS", "ZEUS", "TANK"]
 };
@@ -12,11 +12,11 @@ let gameState = {
     dogs: [], status: 'idle', timer: null, timeLeft: 0, reserveQueue: []
 };
 
-/* --- OUTILS DE GÉNÉRATION --- */
+/* --- OUTILS --- */
 function createRandomBag() {
     let bag = [];
     for(let i=1; i<=8; i++) {
-        for(let j=0; j<5; j++) bag.push(i);
+        for(let j=0; j<5; j++) bag.push(i); // 5 exemplaires de chaque
     }
     return bag.sort(() => Math.random() - 0.5);
 }
@@ -29,7 +29,7 @@ function getBalancedNumber() {
 
 /* --- MOTEUR --- */
 function initGameEngine() {
-    console.log("%c --- TOPDOG V10 (GRAVITY GUARD) --- ", "background: #e74c3c; color: #fff; font-size:20px; font-weight:bold;");
+    console.log("%c --- TOPDOG V11 (HARDCORE 40) --- ", "background: #000; color: #ff0000; font-size:20px; font-weight:bold;");
     
     currentBag = createRandomBag();
     gameState.dogs = [];
@@ -44,6 +44,7 @@ function initGameEngine() {
 
     let newGrid = Array(8).fill().map(() => Array(8).fill(0));
     let startCols = Math.random() > 0.5 ? [0, 2, 4, 6] : [1, 3, 5, 7];
+    
     gameState.dogs.forEach((dog, i) => {
         let c = startCols[i];
         let r = Math.floor(Math.random() * 2); 
@@ -92,6 +93,7 @@ function injectStrategicKeys() {
                 if(blocker.val > 0 && blocker.val < 9) {
                     let needed = 9 - blocker.val;
                     let hasKey = false;
+                    // Check voisins
                     if(c > 0 && gameState.grid[r+1][c-1].val === needed) hasKey = true;
                     if(c < 7 && gameState.grid[r+1][c+1].val === needed) hasKey = true;
                     if(r < 6 && gameState.grid[r+2][c].val === needed) hasKey = true;
@@ -100,7 +102,6 @@ function injectStrategicKeys() {
                         let neighbors = [];
                         if(c > 0 && gameState.grid[r+1][c-1].val !== 9) neighbors.push({r: r+1, c: c-1});
                         if(c < 7 && gameState.grid[r+1][c+1].val !== 9) neighbors.push({r: r+1, c: c+1});
-                        
                         if(neighbors.length > 0) {
                             let target = neighbors[Math.floor(Math.random() * neighbors.length)];
                             gameState.grid[target.r][target.c] = { val: needed, dogId: null };
@@ -136,47 +137,42 @@ function processMatch(r1, c1, r2, c2) {
     return true;
 }
 
-/* --- LE CORRECTIF MAJEUR : GRAVITÉ SÉCURISÉE --- */
+/* --- GRAVITÉ AVEC GESTION DU VIDE --- */
 function applyGravityLogic() {
     for(let c=0; c<8; c++) {
-        // 1. Récupérer tout ce qui est solide (pas de 0) dans la colonne
         let colItems = [];
+        // 1. On garde ce qui est solide
         for(let r=0; r<8; r++) {
             if(gameState.grid[r][c].val !== 0) {
-                // On crée une COPIE de l'objet pour éviter les bugs de référence
                 colItems.push({...gameState.grid[r][c]});
             }
         }
         
-        // 2. Remplir le vide au sommet
+        // 2. On remplit le sommet
         while(colItems.length < 8) {
-            let newVal = 0;
+            let newVal = 0; // Par défaut c'est du VIDE (0)
+            
+            // Si on a encore du carburant
             if(gameState.reserve > 0) {
                 gameState.reserve--;
-                
-                // SÉCURITÉ : Si la file est vide, on en recrée une
                 if(gameState.reserveQueue.length === 0) gameState.reserveQueue = createRandomBag();
-                
                 let candidate = gameState.reserveQueue.shift();
-                // SÉCURITÉ ULTIME : Si jamais shift() renvoie 'undefined' ou 0, on force un chiffre
                 if(!candidate || candidate === 0) candidate = Math.floor(Math.random()*8)+1;
-                
                 newVal = candidate;
             }
-            // On ajoute en haut (unshift)
+            // Sinon newVal reste à 0 (Le ciel tombe)
+            
+            // On ajoute en HAUT de la colonne (unshift)
+            // Donc le 0 sera en index 0 (Haut de l'écran)
             colItems.unshift({ val: newVal, dogId: null });
         }
 
-        // 3. Réappliquer proprement à la grille
-        for(let r=0; r<8; r++) {
-            gameState.grid[r][c] = colItems[r];
-        }
+        for(let r=0; r<8; r++) gameState.grid[r][c] = colItems[r];
     }
 }
 
 function checkWinCondition() {
     for(let c=0; c<8; c++) {
-        // La victoire n'est validée QUE si le chien est physiquement sur la ligne 7
         let cell = gameState.grid[7][c]; 
         if(cell.val === 9) {
             gameState.status = 'won';
@@ -187,7 +183,7 @@ function checkWinCondition() {
 }
 
 function shuffleBoardLogic() {
-    console.log("--- BRASSAGE V10 ---");
+    console.log("--- BRASSAGE V11 ---");
     if(gameState.shuffleLeft <= 0) return false;
     gameState.shuffleLeft--;
 
