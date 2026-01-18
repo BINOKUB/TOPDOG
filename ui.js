@@ -1,6 +1,6 @@
 /* =========================================
-   TOPDOG UI ENGINE
-   VERSION: V20 (Infinite AI Edition)
+   TOPDOG UI ENGINE V24
+   FEATURES: MUTE TOGGLE + CONFETTI
    ========================================= */
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -9,20 +9,20 @@ let selectedTile = null;
 let isProcessing = false;
 let timerInterval = null;
 
-/* --- FORMATTER D'ARGENT (1.5k, 2M...) --- */
+// GESTION DU MUTE (Sauvegardé)
+let isMuted = localStorage.getItem('topdog_muted') === 'true';
+
+/* --- FORMATTER D'ARGENT --- */
 function formatMoney(num) {
-    if (num >= 1000000) {
-        return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-    }
-    if (num >= 1000) {
-        return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
-    }
+    if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
     return num;
 }
 
-/* --- MOTEUR SONORE (SYNTHÉTISEUR) --- */
+/* --- MOTEUR SONORE --- */
 const SoundFX = {
     click: () => {
+        if(isMuted) return; // MUTE CHECK
         resumeAudio();
         const t = audioCtx.currentTime;
         const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
@@ -32,11 +32,13 @@ const SoundFX = {
         osc.start(t); osc.stop(t + 0.05);
     },
     match: () => {
+        if(isMuted) return; // MUTE CHECK
         resumeAudio();
         const t = audioCtx.currentTime;
         playNote(523.25, 'sine', 0.1, t); playNote(659.25, 'triangle', 0.1, t + 0.05); playNote(783.99, 'sine', 0.2, t + 0.1);
     },
     shuffle: () => {
+        if(isMuted) return; // MUTE CHECK
         resumeAudio();
         const bufferSize = audioCtx.sampleRate * 0.4; 
         const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
@@ -50,6 +52,7 @@ const SoundFX = {
         noise.start();
     },
     win: () => {
+        if(isMuted) return; // MUTE CHECK
         resumeAudio();
         const now = audioCtx.currentTime;
         [523, 659, 784, 1046, 784, 1046].forEach((f, i) => { playNote(f, 'square', 0.1, now + i * 0.15); });
@@ -57,6 +60,7 @@ const SoundFX = {
         const coinLoop = setInterval(() => { playCoinSound(); coinCount++; if(coinCount > 10) clearInterval(coinLoop); }, 100);
     },
     lose: () => {
+        if(isMuted) return; // MUTE CHECK
         resumeAudio();
         const t = audioCtx.currentTime;
         const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
@@ -84,10 +88,30 @@ function playCoinSound() {
 }
 function resumeAudio() { if(audioCtx.state === 'suspended') audioCtx.resume(); }
 
-/* --- CONTRÔLEURS UI --- */
+/* --- GESTION DU BOUTON MUTE --- */
+function toggleMute() {
+    isMuted = !isMuted;
+    localStorage.setItem('topdog_muted', isMuted);
+    updateMuteIcon();
+}
+
+function updateMuteIcon() {
+    const btn = document.getElementById('btn-sound');
+    if(isMuted) {
+        btn.innerHTML = '🔇'; // Icône Mute
+        btn.style.opacity = '0.5';
+    } else {
+        btn.innerHTML = '🔊'; // Icône Son
+        btn.style.opacity = '1';
+    }
+}
+
+/* --- LOGIQUE UI --- */
 document.getElementById('btn-reset').onclick = startGame;
 document.getElementById('btn-rules').onclick = () => showMessage("RÈGLES", "Amenez un chien en bas.<br>Associez les chiffres (Somme = 9).<br>Réserve ILLIMITÉE !");
 document.getElementById('btn-hint').onclick = showHint;
+// Nouveau bouton Son
+document.getElementById('btn-sound').onclick = toggleMute;
 
 document.getElementById('btn-shuffle').onclick = () => {
     SoundFX.shuffle();
@@ -99,12 +123,13 @@ document.getElementById('btn-shuffle').onclick = () => {
 };
 
 function startGame() {
-    initGameEngine(); // Appelle la logique V20
+    initGameEngine();
     renderBettingBoard();
     updateHUD();
     renderGrid();
     startTimer();
     hideMessage();
+    updateMuteIcon(); // Met à jour l'icône au démarrage
     document.getElementById('btn-shuffle').style.opacity = 1;
     document.getElementById('shuffle-count').innerText = 1;
     isProcessing = false; selectedTile = null;
@@ -126,13 +151,10 @@ function renderBettingBoard() {
 }
 
 function updateHUD() {
-    // 1. Affiche la Banque (Score)
     document.getElementById('score-display').innerText = formatMoney(gameState.bankroll);
-    
-    // 2. Affiche la Réserve en mode "Infini" (V20)
     const reserveEl = document.getElementById('reserve-count');
-    reserveEl.innerHTML = "&infin;"; // Symbole Infini
-    reserveEl.style.color = '#00f3ff'; // Cyan néon
+    reserveEl.innerHTML = "&infin;"; 
+    reserveEl.style.color = '#00f3ff';
     reserveEl.style.fontSize = "1.5em";
 }
 
@@ -220,15 +242,27 @@ function doMatch(r1, c1, r2, c2) {
     }, 250);
 }
 
+// Fonction pour les confettis (utilise la librairie externe)
+function fireConfetti() {
+    if (typeof confetti === 'function') {
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#00f3ff', '#f1c40f', '#e74c3c', '#2ecc71']
+        });
+    }
+}
+
 function handleWin(dogId) {
     clearInterval(timerInterval);
     SoundFX.win();
+    fireConfetti(); // BOUUUUM !
+
     let dog = gameState.dogs.find(d => d.id === dogId);
     let winAmount = dog.bet * 10;
-
-    // Mise à jour de la banque et sauvegarde
     gameState.bankroll += winAmount;
-    saveBankroll(gameState.bankroll); // Appelle la fonction de logic.js
+    saveBankroll(gameState.bankroll);
     
     document.getElementById(`bet-dog-${dogId}`).classList.add('winner');
     
@@ -273,5 +307,4 @@ function startTimer() {
     }, 1000);
 }
 
-// Lancement initial
 startGame();
