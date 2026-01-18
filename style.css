@@ -1,0 +1,138 @@
+:root {
+    --bg-color: #050505;
+    --tile-bg: #1a1a1a;
+    --tile-selected: #d4af37;
+    --tile-text: #e0e0e0;
+    --accent-match: #27ae60;
+    --accent-hint: #00ffff;
+    --accent-dog: #ff9f43;
+    --bet-panel-bg: #111;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--tile-text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+    user-select: none;
+    touch-action: manipulation;
+    padding-top: 10px;
+}
+
+/* HEADER & TITRE */
+.top-bar {
+    width: 94vw; max-width: 480px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+}
+h1 { 
+    margin: 0; letter-spacing: 3px; font-style: italic;
+    color: #fff; font-size: 1.8em; font-weight: 900; 
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.6);
+    background: linear-gradient(90deg, #fff, #888);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.btn-rules {
+    width: 30px; height: 30px; border-radius: 50%; border: 1px solid #444; color: #888;
+    font-weight: bold; cursor: pointer; background: #111; font-size: 1.2em;
+}
+
+/* TABLEAU DES PARIS */
+#betting-board {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px;
+    width: 94vw; max-width: 480px;
+    background: var(--bet-panel-bg); border: 1px solid #333;
+    padding: 5px; border-radius: 6px; margin-bottom: 10px;
+}
+.bet-card {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #000; padding: 4px 8px; border-radius: 4px;
+    border-left: 3px solid #333; font-size: 0.85em;
+}
+.bet-card.winner { border-color: var(--accent-match); background: #0a2f15; }
+.bet-card.loser { opacity: 0.4; }
+.dog-name { font-weight: bold; color: #bbb; display: flex; align-items: center; gap: 5px;}
+.dog-badge { 
+    background: var(--accent-dog); color: #000; 
+    font-size: 0.7em; width: 14px; height: 14px; border-radius: 50%; 
+    display: flex; align-items: center; justify-content: center; font-weight: 900;
+}
+.bet-amount { color: var(--accent-match); font-family: 'Courier New', monospace; font-weight: bold;}
+
+/* HUD */
+.hud { display: flex; gap: 10px; margin-bottom: 5px; font-size: 0.9em; font-weight: bold; width: 94vw; max-width: 480px; justify-content: space-between; align-items: center;}
+.hud span { color: #888; }
+.hud .highlight { color: #fff; font-size: 1.1em; }
+.timer-box {
+    color: #e67e22; border: 1px solid #333; background: #111;
+    padding: 2px 8px; border-radius: 4px; min-width: 50px; text-align: center;
+    font-family: 'Courier New', monospace; font-size: 1.1em;
+}
+
+/* GRILLE DE JEU */
+.game-container { position: relative; }
+#game-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    gap: 3px;
+    background: #000; padding: 4px; border-radius: 8px; border: 2px solid #333;
+    width: 94vw; height: 94vw;
+    max-width: 480px; max-height: 480px;
+}
+.tile {
+    width: 100%; height: 100%;
+    background-color: var(--tile-bg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(16px, 5vw, 24px);
+    font-weight: bold; cursor: pointer; border-radius: 3px;
+    position: relative; transition: transform 0.1s;
+}
+.tile:active { transform: scale(0.9); }
+.tile.selected { background-color: var(--tile-selected); color: #000; box-shadow: 0 0 10px rgba(212, 175, 55, 0.6); z-index: 10; }
+.tile.empty { background: transparent; border: 1px dashed #333; }
+
+/* LE CHIEN */
+.tile.nine {
+    color: transparent; border: 1px solid var(--accent-dog);
+    background-image: url("icon-dog.png"); /* Utilise ton image ici */
+    background-repeat: no-repeat; background-position: center; background-size: 70%;
+    box-shadow: inset 0 0 10px rgba(255, 159, 67, 0.2);
+}
+.dog-id-badge {
+    position: absolute; top: 1px; right: 1px;
+    background: #000; color: var(--accent-dog);
+    font-size: 10px; width: 14px; height: 14px;
+    border-radius: 50%; border: 1px solid var(--accent-dog);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; z-index: 5;
+}
+
+/* BOUTONS */
+.controls { margin-top: 15px; display: flex; gap: 10px; width: 94vw; max-width: 480px; }
+button { 
+    padding: 15px; background: #111; border: 1px solid #444; color: #888; 
+    cursor: pointer; font-size: 14px; text-transform: uppercase; flex-grow: 1;
+    font-weight: bold; border-radius: 4px; transition: 0.2s;
+}
+button:active { background: #333; color: #fff; }
+#btn-hint { border-color: #005555; color: var(--accent-hint); }
+#btn-shuffle { border-color: #553300; color: var(--accent-dog); }
+
+/* OVERLAYS */
+#message-overlay, #loading-overlay {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(10,10,10,0.95); z-index: 100;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; border-radius: 8px;
+}
+#message-overlay { padding: 20px; border: 1px solid #444; }
+.anim-match { animation: pop 0.3s forwards; background-color: var(--accent-match) !important; }
+@keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(0); opacity: 0;} }
