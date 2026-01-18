@@ -17,10 +17,19 @@
 
     <div id="betting-board"></div>
 
-    <div class="hud">
-        <span>Rés: <span id="reserve-count" class="highlight">40</span></span>
-        <span id="timer-container" class="timer-box">02:00</span>
-        <span>PTS: <span id="score-display" class="highlight">0</span></span>
+   <div class="hud">
+        <div class="hud-item">
+            <span class="hud-label">RÉSERVE</span>
+            <span id="reserve-count" class="hud-value">40</span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">TEMPS</span>
+            <span id="timer-container" class="hud-value">02:00</span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">SCORE</span>
+            <span id="score-display" class="hud-value highlight">0</span>
+        </div>
     </div>
 
     <div class="game-container">
