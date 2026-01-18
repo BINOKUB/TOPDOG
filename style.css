@@ -9,9 +9,6 @@
     
     --accent-dog: #ff9f43;
     --accent-match: #fff;
-    
-    /* HAUTEUR DE L'ECRAN UTILE (Pour mobile) */
-    --vh: 1vh; 
 }
 
 * { box-sizing: border-box; }
@@ -21,41 +18,40 @@ body {
     background-color: var(--bg-color);
     color: var(--tile-text);
     margin: 0; padding: 0;
-    
-    /* PLEIN ÉCRAN MOBILE FIXE (Empêche le scroll) */
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    
-    /* GESTION DES ZONES DE SÉCURITÉ (Encoche iPhone) */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
-    
     display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-    
-    /* Empêcher les comportements tactiles parasites */
     overscroll-behavior: none;
     -webkit-user-select: none; user-select: none;
     -webkit-tap-highlight-color: transparent;
 }
 
-/* --- HEADER COMPACT --- */
+/* HEADER AVEC BOUTONS */
 .top-bar {
     width: 94%; max-width: 500px;
     display: flex; justify-content: space-between; align-items: center;
     padding: 10px 0 5px 0;
-    flex-shrink: 0; /* Ne rétrécit jamais */
+    flex-shrink: 0; 
 }
 h1 { 
     margin: 0; font-style: italic; color: #fff; 
-    font-size: clamp(20px, 5vw, 28px); /* Taille adaptative */
+    font-size: clamp(20px, 5vw, 28px); 
     font-weight: 900; letter-spacing: 2px;
     text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
 }
-.btn-rules {
+
+/* GROUPE BOUTONS HEADER */
+.header-buttons { display: flex; gap: 10px; }
+
+.btn-circle {
     width: 32px; height: 32px; border-radius: 50%; border: 2px solid #333;
     background: #111; color: #888; font-weight: bold; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 1.2em;
 }
+.btn-circle:active { transform: scale(0.9); background: #222; }
 
-/* --- TABLEAU PARIS (S'adapte en hauteur) --- */
+/* TABLEAU PARIS */
 #betting-board {
     width: 94%; max-width: 500px;
     display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;
@@ -65,11 +61,9 @@ h1 {
     display: flex; justify-content: space-between; align-items: center;
     background: #0f0f0f; padding: 4px 8px; border-radius: 6px;
     border: 1px solid #333; border-left: 3px solid #444;
-    font-size: clamp(10px, 3.5vw, 14px); /* Texte qui s'adapte */
+    font-size: clamp(10px, 3.5vw, 14px);
 }
-.bet-card.winner { 
-    border-color: #2ecc71; background: #0b2210; box-shadow: 0 0 10px rgba(46, 204, 113, 0.2); 
-}
+.bet-card.winner { border-color: #2ecc71; background: #0b2210; box-shadow: 0 0 10px rgba(46, 204, 113, 0.2); }
 .bet-card.loser { opacity: 0.3; filter: grayscale(100%); }
 .dog-badge { 
     background: #fff; color: #000; font-size: 0.8em; 
@@ -79,7 +73,7 @@ h1 {
 .dog-name { display: flex; align-items: center; font-weight: 700; color:#ccc;}
 .bet-amount { color: #2ecc71; font-family: monospace; font-weight: bold; }
 
-/* --- HUD (Score/Temps) --- */
+/* HUD */
 .hud { 
     display: flex; width: 94%; max-width: 500px; justify-content: space-between;
     background: #111; padding: 5px 15px; border-radius: 50px; border: 1px solid #222;
@@ -90,40 +84,26 @@ h1 {
 .hud-value { font-size: 1.2em; font-weight: bold; color: #fff; font-family: monospace; }
 .hud-value.highlight { color: #f1c40f; text-shadow: 0 0 5px rgba(241, 196, 15, 0.4); }
 
-/* --- ZONE DE JEU (Le coeur du responsive) --- */
+/* JEU */
 .game-container {
-    flex-grow: 1; /* Prend toute la place restante */
-    display: flex; align-items: center; justify-content: center;
-    width: 100%; position: relative;
-    overflow: hidden; padding: 5px 0;
+    flex-grow: 1; display: flex; align-items: center; justify-content: center;
+    width: 100%; position: relative; overflow: hidden; padding: 5px 0;
 }
-
 #game-grid {
-    display: grid; 
-    grid-template-columns: repeat(8, 1fr); 
-    grid-template-rows: repeat(8, 1fr); 
-    gap: 3px;
+    display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); gap: 3px;
     background: #000; padding: 4px; border-radius: 12px; border: 2px solid #333;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    
-    /* MAGIE RESPONSIVE : Carré parfait qui ne dépasse jamais */
-    width: min(94vw, 55vh); 
-    height: min(94vw, 55vh);
+    width: min(94vw, 55vh); height: min(94vw, 55vh);
 }
 
-/* --- TUILES --- */
+/* TUILES */
 .tile {
-    width: 100%; height: 100%;
-    background-color: var(--tile-bg);
+    width: 100%; height: 100%; background-color: var(--tile-bg);
     display: flex; align-items: center; justify-content: center;
-    font-size: clamp(16px, 5vw, 28px); /* Chiffres adaptatifs */
-    font-weight: 800; border-radius: 4px;
+    font-size: clamp(16px, 5vw, 28px); font-weight: 800; border-radius: 4px;
     position: relative; transition: transform 0.1s;
-    border-bottom: 2px solid rgba(0,0,0,0.3);
-    cursor: pointer;
+    border-bottom: 2px solid rgba(0,0,0,0.3); cursor: pointer;
 }
-
-/* Couleurs */
 .val-1 { color: var(--c1); border: 1px solid rgba(0, 243, 255, 0.3); background: rgba(0, 243, 255, 0.05); }
 .val-2 { color: var(--c2); border: 1px solid rgba(41, 128, 185, 0.3); background: rgba(41, 128, 185, 0.05); }
 .val-3 { color: var(--c3); border: 1px solid rgba(155, 89, 182, 0.3); background: rgba(155, 89, 182, 0.05); }
@@ -132,7 +112,6 @@ h1 {
 .val-6 { color: var(--c6); border: 1px solid rgba(241, 196, 15, 0.3); background: rgba(241, 196, 15, 0.05); }
 .val-7 { color: var(--c7); border: 1px solid rgba(230, 126, 34, 0.3); background: rgba(230, 126, 34, 0.05); }
 .val-8 { color: var(--c8); border: 1px solid rgba(231, 76, 60, 0.3); background: rgba(231, 76, 60, 0.05); }
-
 .tile.nine {
     border: 2px solid var(--accent-dog); background-color: #000;
     background-image: url("icon-dog-192.png");
@@ -143,10 +122,10 @@ h1 {
 .anim-match { animation: flash 0.2s forwards; background: #fff !important; }
 @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.5; transform: scale(1.1); } 100% { opacity: 0; } }
 
-/* --- CONTROLES (Bas de page) --- */
+/* CONTROLES */
 .controls { 
     display: flex; gap: 8px; width: 94%; max-width: 500px;
-    margin-bottom: max(10px, env(safe-area-inset-bottom)); /* Espace sécu iPhone */
+    margin-bottom: max(10px, env(safe-area-inset-bottom));
     flex-shrink: 0;
 }
 button { 
@@ -160,7 +139,7 @@ button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.5);
 #btn-shuffle { color: var(--c6); background: #1f1d0a; }
 #btn-reset { color: #fff; background: #222; }
 
-/* --- OVERLAYS --- */
+/* OVERLAYS */
 #message-overlay {
     position: absolute; top:0; left:0; width:100%; height:100%;
     background: rgba(0,0,0,0.92); backdrop-filter: blur(8px); z-index: 100;
