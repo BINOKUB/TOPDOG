@@ -7,19 +7,14 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>TOPDOG</title>
     <link rel="manifest" href="./manifest.json">
-    <link rel="stylesheet" href="style.css?v=13"> 
+    <link rel="stylesheet" href="style.css?v=24"> 
     <link rel="icon" type="image/png" href="./icon-dog-192.png">
     <link rel="apple-touch-icon" href="./icon-dog-192.png">
     
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
     <style>
-        /* Bloquer la sélection de texte et le scroll élastique */
-        body {
-            overscroll-behavior: none;
-            -webkit-user-select: none;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-        /* Écran de démarrage */
+        body { overscroll-behavior: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
         #start-screen {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             background: #050505; z-index: 999;
@@ -45,21 +40,24 @@
 
     <div id="start-screen">
         <div class="logo-title">TOPDOG</div>
-        <div style="color:#666; margin-bottom:30px; font-family:monospace;">V1.0 - NEON EDITION</div>
+        <div style="color:#666; margin-bottom:30px; font-family:monospace;">V1.0 - GOLD EDITION</div>
         <button class="btn-start" onclick="launchApp()">JOUER</button>
     </div>
 
     <div class="top-bar">
         <h1>TOPDOG</h1>
-        <button class="btn-rules" id="btn-rules">?</button>
+        <div class="header-buttons">
+            <button class="btn-circle" id="btn-sound">🔊</button>
+            <button class="btn-circle" id="btn-rules">?</button>
+        </div>
     </div>
 
     <div id="betting-board"></div>
 
-   <div class="hud">
+    <div class="hud">
         <div class="hud-item">
             <span class="hud-label">RÉSERVE</span>
-            <span id="reserve-count" class="hud-value">40</span>
+            <span id="reserve-count" class="hud-value">&infin;</span>
         </div>
         <div class="hud-item">
             <span class="hud-label">TEMPS</span>
@@ -84,21 +82,15 @@
 
     <script>
         function launchApp() {
-            // Cache l'écran titre
             document.getElementById('start-screen').style.display = 'none';
-            // Initialise l'Audio Context (nécessaire sur mobile après un clic utilisateur)
             if(window.audioCtx && window.audioCtx.state === 'suspended') {
                 window.audioCtx.resume();
             }
-            // Lance le jeu via ui.js (qui appelle logic.js)
             if(typeof startGame === 'function') {
                 startGame();
             }
         }
     </script>
 
-    <script src="logic.js?v=23"></script>
-    <script src="ui.js?v=20"></script>
-
-</body>
+    <script src="logic.js?v=23"></script> <script src="ui.js?v=24"></script>    </body>
 </html>
