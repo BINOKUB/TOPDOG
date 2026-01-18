@@ -1,13 +1,11 @@
 /* =========================================
-   TOPDOG ENGINE V20
-   CODENAME: INFINITE AI
-   DESCRIPTION: Réserve infinie. Génération contextuelle stricte.
+   TOPDOG ENGINE V22
+   CODENAME: PERFECT EQUITY (POOL SYSTEM)
    ========================================= */
 
 /* --- CONFIGURATION --- */
 const CONFIG = {
     gridSize: 8,
-    // Plus de "initialReserve". C'est infini.
     timeLimit: 120, 
     dogNames: ["SPARTACUS", "TITAN", "HURRICANE", "VIPER", "GHOST", "BANDIT", "REX", "CHAOS", "ZEUS", "TANK"]
 };
@@ -16,43 +14,137 @@ const CONFIG = {
 let gameState = {
     grid: [], 
     bankroll: 0, 
-    // reserve: 0, // Supprimé
     shuffleLeft: 1,
-    dogs: [], status: 'idle', timer: null, timeLeft: 0
+    dogs: [], status: 'idle', timer: null, timeLeft: 0,
+    
+    // NOUVEAU : Le "Sac Global" pour la gravité (assure l'équité sur la durée)
+    globalBag: []
 };
 
-/* --- L'INTELLIGENCE ARTIFICIELLE (GÉNÉRATEUR) --- */
+/* --- SYSTÈME DE DISTRIBUTION ÉQUITABLE --- */
 
-/**
- * Cette fonction est le CŒUR de la V20.
- * Elle regarde une case (r, c) et retourne un chiffre [1-8]
- * qui ne touche AUCUN voisin identique.
- */
-function generatePerfectNumber(r, c, currentGrid) {
-    let forbidden = new Set(); // Utilisation d'un Set pour unicité
+// 1. Créer un "Deck" parfait pour le démarrage (60 cartes)
+function createInitialDeck() {
+    let deck = [];
+    // Base : 7 exemplaires de chaque chiffre (1-8) => 56 cartes
+    for (let i = 1; i <= 8; i++) {
+        for (let k = 0; k < 7; k++) deck.push(i);
+    }
+    // Comblement : 4 cartes restantes (3, 4, 5, 6) pour atteindre 60
+    deck.push(3, 4, 5, 6);
+    
+    // Mélange initial
+    return deck.sort(() => Math.random() - 0.5);
+}
 
-    // 1. Scan des voisins immédiats sur la grille actuelle
-    // HAUT
-    if (r > 0 && currentGrid[r-1][c].val !== 0 && currentGrid[r-1][c].val !== 9) forbidden.add(currentGrid[r-1][c].val);
-    // BAS
-    if (r < 7 && currentGrid[r+1][c] && currentGrid[r+1][c].val !== 0 && currentGrid[r+1][c].val !== 9) forbidden.add(currentGrid[r+1][c].val);
-    // GAUCHE
-    if (c > 0 && currentGrid[r][c-1].val !== 0 && currentGrid[r][c-1].val !== 9) forbidden.add(currentGrid[r][c-1].val);
-    // DROITE
-    if (c < 7 && currentGrid[r][c+1] && currentGrid[r][c+1].val !== 0 && currentGrid[r][c+1].val !== 9) forbidden.add(currentGrid[r][c+1].val);
+// 2. Créer un sac équilibré pour la gravité (40 cartes : 5 de chaque)
+function refillGlobalBag() {
+    let bag = [];
+    for (let i = 1; i <= 8; i++) {
+        for (let k = 0; k < 5; k++) bag.push(i);
+    }
+    return bag.sort(() => Math.random() - 0.5);
+}
 
-    // 2. Calcul des candidats possibles (1 à 8)
-    let candidates = [];
-    for(let i=1; i<=8; i++) {
-        if(!forbidden.has(i)) {
-            candidates.push(i);
+// Helper de lecture sécurisée
+function getSafeVal(r, c, grid) {
+    if (r < 0 || r >= 8 || c < 0 || c >= 8) return null;
+    let cell = grid[r][c];
+    if (!cell) return null;
+    if (typeof cell === 'object') {
+        if (cell.val === 9) return 9; 
+        if (cell.val > 0) return cell.val;
+    }
+    return null;
+}
+
+/* --- LE SÉLECTEUR INTELLIGENT (HYBRIDE) --- */
+// Il essaie de prendre un chiffre dans le Deck fourni (pour respecter les quotas)
+// MAIS il vérifie qu'il ne crée pas de doublon.
+// S'il ne trouve pas dans le deck, il fait un échange (swap).
+
+function fillGridWithDeck(grid, deck) {
+    // On parcourt la grille case par case
+    for(let r=0; r<8; r++) {
+        for(let c=0; c<8; c++) {
+            // Si c'est une case vide (pas un chien)
+            if(!grid[r][c] || grid[r][c] === 0) {
+                
+                // 1. Identifier les interdits (Voisins)
+                let forbidden = new Set();
+                let neighbors = [
+                    getSafeVal(r-1, c, grid), getSafeVal(r+1, c, grid),
+                    getSafeVal(r, c-1, grid), getSafeVal(r, c+1, grid)
+                ];
+                neighbors.forEach(n => { if(n !== null && n !== 9) forbidden.add(n); });
+
+                // 2. Chercher dans le deck un candidat valide
+                let foundIndex = -1;
+                // On scanne le deck jusqu'à trouver un chiffre compatible
+                for(let i=0; i<deck.length; i++) {
+                    if (!forbidden.has(deck[i])) {
+                        foundIndex = i;
+                        break;
+                    }
+                }
+
+                let val;
+                if (foundIndex !== -1) {
+                    // On a trouvé un bon chiffre, on le prend
+                    val = deck.splice(foundIndex, 1)[0];
+                } else {
+                    // CRISE : Aucun chiffre du deck ne matche (très rare avec ce volume)
+                    // On prend le premier du deck quand même et on le "force" (mutation)
+                    // OU on génère un random hors deck pour débloquer
+                    val = deck.shift();
+                    // Si par malheur il est interdit, on le change
+                    while(forbidden.has(val)) {
+                        val = (val % 8) + 1;
+                    }
+                }
+
+                grid[r][c] = { val: val, dogId: null };
+            }
+        }
+    }
+}
+
+// Fonction pour piocher dans le sac infini (Gravité) en respectant les voisins
+function pickFromBagSmart(r, c, currentGrid) {
+    // Si le sac est vide, on le remplit (5 de chaque)
+    if (gameState.globalBag.length < 5) {
+        gameState.globalBag = gameState.globalBag.concat(refillGlobalBag());
+    }
+
+    // Interdits
+    let forbidden = new Set();
+    let neighbors = [
+        getSafeVal(r-1, c, currentGrid), getSafeVal(r+1, c, currentGrid),
+        getSafeVal(r, c-1, currentGrid), getSafeVal(r, c+1, currentGrid)
+    ];
+    neighbors.forEach(n => { if(n !== null && n !== 9) forbidden.add(n); });
+
+    // On cherche dans le sac
+    let foundIndex = -1;
+    for(let i=0; i<Math.min(gameState.globalBag.length, 20); i++) {
+        if (!forbidden.has(gameState.globalBag[i])) {
+            foundIndex = i;
+            break;
         }
     }
 
-    // 3. Choix aléatoire parmi les candidats valides
-    // Comme il y a max 4 voisins et 8 chiffres, candidates.length est toujours >= 4.
-    // Impossible de bloquer.
-    return candidates[Math.floor(Math.random() * candidates.length)];
+    if (foundIndex !== -1) {
+        return gameState.globalBag.splice(foundIndex, 1)[0];
+    }
+
+    // Fallback
+    let fallback = gameState.globalBag.shift();
+    if(forbidden.has(fallback)) {
+        // Mutation locale pour éviter le blocage
+        let candidates = [1,2,3,4,5,6,7,8].filter(x => !forbidden.has(x));
+        if(candidates.length > 0) fallback = candidates[Math.floor(Math.random()*candidates.length)];
+    }
+    return fallback;
 }
 
 /* --- PERSISTANCE --- */
@@ -66,11 +158,12 @@ function saveBankroll(amount) {
 
 /* --- INITIALISATION --- */
 function initGameEngine() {
-    console.log("%c --- TOPDOG V20 (INFINITE AI) --- ", "background: #000; color: #00ffff; font-size:16px; font-weight:bold;");
+    console.log("%c --- TOPDOG V22 (PERFECT EQUITY) --- ", "background: #fff; color: #000; font-size:16px; font-weight:bold;");
     
     gameState.dogs = [];
     gameState.bankroll = loadBankroll();
-    
+    gameState.globalBag = refillGlobalBag(); // Initialisation sac gravité
+
     let usedNames = [];
     for(let i=1; i<=4; i++) {
         let name;
@@ -83,23 +176,21 @@ function initGameEngine() {
     let newGrid = Array(8).fill().map(() => Array(8).fill(0));
     let startCols = Math.random() > 0.5 ? [0, 2, 4, 6] : [1, 3, 5, 7];
     
-    // Placement Chiens
+    // 1. Chiens
     gameState.dogs.forEach((dog, i) => {
         let c = startCols[i];
         let r = Math.floor(Math.random() * 2); 
         newGrid[r][c] = { val: 9, dogId: dog.id };
     });
 
-    // Remplissage Initial avec l'IA
-    for(let c=0; c<8; c++) {
-        for(let r=0; r<8; r++) {
-            if(!newGrid[r][c] || newGrid[r][c] === 0) {
-                // L'IA décide du chiffre parfait ici
-                let num = generatePerfectNumber(r, c, newGrid);
-                newGrid[r][c] = { val: num, dogId: null };
-            }
-        }
-    }
+    // 2. Préparation du Deck Parfait (60 cartes équilibrées)
+    let perfectDeck = createInitialDeck();
+
+    // 3. Remplissage intelligent avec le Deck
+    fillGridWithDeck(newGrid, perfectDeck);
+
+    // 4. Nettoyage ultime (au cas où)
+    bruteForceClean(newGrid);
 
     gameState.grid = newGrid;
     injectStrategicKeys();
@@ -109,6 +200,31 @@ function initGameEngine() {
     gameState.timeLeft = CONFIG.timeLimit;
     
     return gameState;
+}
+
+// Fonction de nettoyage (inchangée V21, elle est très bien)
+function bruteForceClean(grid) {
+    let attempts = 0; 
+    let errors = true;
+    while(errors && attempts < 50) {
+        errors = false;
+        attempts++;
+        for(let r=0; r<8; r++) {
+            for(let c=0; c<8; c++) {
+                let v = getSafeVal(r, c, grid);
+                if(!v || v === 9) continue;
+                
+                let n = [getSafeVal(r-1,c,grid), getSafeVal(r+1,c,grid), getSafeVal(r,c-1,grid), getSafeVal(r,c+1,grid)];
+                if(n.includes(v)) {
+                    errors = true;
+                    // On change pour une valeur safe
+                    let forbidden = new Set(n);
+                    let candidates = [1,2,3,4,5,6,7,8].filter(x => !forbidden.has(x));
+                    if(candidates.length > 0) grid[r][c].val = candidates[Math.floor(Math.random()*candidates.length)];
+                }
+            }
+        }
+    }
 }
 
 function injectStrategicKeys() {
@@ -160,10 +276,9 @@ function processMatch(r1, c1, r2, c2) {
     return true;
 }
 
-/* --- GRAVITÉ V20 : L'IA DE REMPLISSAGE --- */
+/* --- GRAVITÉ ÉQUITABLE (V22) --- */
 function applyGravityLogic() {
     for(let c=0; c<8; c++) {
-        // 1. On extrait les items solides de la colonne
         let colItems = [];
         for(let r=0; r<8; r++) {
             if(gameState.grid[r][c].val !== 0) {
@@ -171,36 +286,27 @@ function applyGravityLogic() {
             }
         }
         
-        // 2. On calcule combien il manque
         let missing = 8 - colItems.length;
-        
-        // 3. On génère les nouveaux items pour combler les trous
         let newItems = [];
         for(let i=0; i<missing; i++) {
-            // Pour l'instant, on met des placeholders. 
-            // On calculera leur valeur exacte une fois qu'ils seront placés dans la grille temporaire
-            // pour avoir le contexte exact des voisins.
-            newItems.unshift({ val: -1, dogId: null }); // -1 = "A Calculer"
+            newItems.unshift({ val: -1, dogId: null });
         }
         
-        // 4. On reconstitue la colonne complète
         colItems = newItems.concat(colItems);
-
-        // 5. On met à jour la grille (avec les -1)
         for(let r=0; r<8; r++) gameState.grid[r][c] = colItems[r];
     }
 
-    // 6. PASSAGE DE L'IA : On remplace les -1 par les valeurs parfaites
-    // On le fait ligne par ligne (du bas vers le haut ou haut vers bas, peu importe ici)
+    // Remplissage avec le Sac Global Équilibré
     for(let r=0; r<8; r++) {
         for(let c=0; c<8; c++) {
             if(gameState.grid[r][c].val === -1) {
-                // L'IA regarde autour et décide
-                let perfectNum = generatePerfectNumber(r, c, gameState.grid);
-                gameState.grid[r][c].val = perfectNum;
+                gameState.grid[r][c].val = pickFromBagSmart(r, c, gameState.grid);
             }
         }
     }
+    
+    // Petite passe de nettoyage
+    bruteForceClean(gameState.grid);
 }
 
 function checkWinCondition() {
@@ -214,22 +320,22 @@ function checkWinCondition() {
     return { won: false };
 }
 
-/* --- BRASSAGE V20 --- */
+/* --- BRASSAGE V22 --- */
 function shuffleBoardLogic() {
-    console.log("--- BRASSAGE V20 ---");
+    console.log("--- BRASSAGE V22 ---");
     if(gameState.shuffleLeft <= 0) return false;
     gameState.shuffleLeft--;
 
-    // On garde juste les chiens, on jette les chiffres (car on a une réserve infinie)
     let dogs = [];
+    // Pour le brassage, on recrée un deck équilibré pour s'assurer qu'on ne dérive pas
+    let numbersDeck = createInitialDeck(); 
+
     for(let r=0; r<8; r++) for(let c=0; c<8; c++) {
         if(gameState.grid[r][c].val === 9) dogs.push(gameState.grid[r][c]);
     }
 
-    // Nouvelle Grille
     let newGrid = Array(8).fill().map(() => Array(8).fill(0));
     
-    // Positionnement aléatoire des chiens
     let possibleSets = [[0, 2, 4, 6], [1, 3, 5, 7], [0, 2, 5, 7]];
     let chosenCols = possibleSets[Math.floor(Math.random() * possibleSets.length)];
     chosenCols.sort(() => Math.random() - 0.5);
@@ -237,21 +343,19 @@ function shuffleBoardLogic() {
     let dogMap = {};
     dogs.forEach((dog, i) => { dogMap[chosenCols[i]] = dog; });
 
-    // On reconstruit tout avec l'IA
+    // 1. Placer les chiens
     for(let c=0; c<8; c++) {
-        let hasDog = dogMap[c] !== undefined;
-        let dogRow = hasDog ? Math.floor(Math.random() * 2) : -1;
-        
-        for(let r=0; r<8; r++) {
-            if (hasDog && r === dogRow) {
-                newGrid[r][c] = dogMap[c];
-            } else {
-                // Génération intelligente
-                let num = generatePerfectNumber(r, c, newGrid);
-                newGrid[r][c] = { val: num, dogId: null };
-            }
+        if(dogMap[c]) {
+            let r = Math.floor(Math.random() * 2);
+            newGrid[r][c] = dogMap[c];
         }
     }
+
+    // 2. Remplir avec le deck parfait
+    fillGridWithDeck(newGrid, numbersDeck);
+    
+    // 3. Nettoyer
+    bruteForceClean(newGrid);
 
     gameState.grid = newGrid;
     injectStrategicKeys();
