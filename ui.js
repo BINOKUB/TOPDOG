@@ -1,55 +1,136 @@
-/* --- UI & AUDIO (V11 - NEW SOUNDS) --- */
+/* --- UI & AUDIO (V12 - CASINO FX) --- */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const gridElement = document.getElementById('game-grid');
 let selectedTile = null;
 let isProcessing = false;
 let timerInterval = null;
 
+/* --- MOTEUR SONORE AVANCÉ --- */
 const SoundFX = {
-    click: () => playTone(800, 'sine', 0.05),
-    match: () => playTone(440, 'triangle', 0.1),
-    // NOUVEAU SON : Shuffle (Bruit de souffle/cartes)
+    // 1. CLIC MÉCANIQUE (Net et précis)
+    click: () => {
+        resumeAudio();
+        const t = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(800, t);
+        osc.frequency.exponentialRampToValueAtTime(100, t + 0.05);
+        
+        gain.gain.setValueAtTime(0.05, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+        
+        osc.start(t); osc.stop(t + 0.05);
+    },
+
+    // 2. MATCH (Accord "Magique" + Écho)
+    match: () => {
+        resumeAudio();
+        const t = audioCtx.currentTime;
+        // On joue deux notes pour faire un accord (Harmonie)
+        playNote(523.25, 'sine', 0.1, t); // Do (C5)
+        playNote(659.25, 'triangle', 0.1, t + 0.05); // Mi (E5)
+        playNote(783.99, 'sine', 0.2, t + 0.1); // Sol (G5)
+    },
+
+    // 3. SHUFFLE (Bruit de turbine/cartes)
     shuffle: () => {
-        if(audioCtx.state === 'suspended') audioCtx.resume();
-        const bufferSize = audioCtx.sampleRate * 0.5; // 0.5 secondes
+        resumeAudio();
+        const bufferSize = audioCtx.sampleRate * 0.4; 
         const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
         const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-            data[i] = Math.random() * 2 - 1; // Bruit blanc
-        }
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
         const noise = audioCtx.createBufferSource();
         noise.buffer = buffer;
+        
+        // Filtre passe-bas pour faire "Whoosh"
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(100, audioCtx.currentTime);
+        filter.frequency.linearRampToValueAtTime(3000, audioCtx.currentTime + 0.2);
+        filter.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.4);
+
         const gain = audioCtx.createGain();
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-        noise.connect(gain);
-        gain.connect(audioCtx.destination);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4);
+
+        noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
         noise.start();
     },
-    win: () => { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => playTone(f, 'square', 0.1), i*100)); },
-    lose: () => playTone(150, 'sawtooth', 0.3)
+
+    // 4. VICTOIRE (La cascade de pièces !)
+    win: () => {
+        resumeAudio();
+        // Fanfare
+        const now = audioCtx.currentTime;
+        [523, 659, 784, 1046, 784, 1046].forEach((f, i) => {
+            playNote(f, 'square', 0.1, now + i * 0.15);
+        });
+        
+        // Bruit des pièces qui tombent (Coin Drop Loop)
+        let coinCount = 0;
+        const coinLoop = setInterval(() => {
+            playCoinSound();
+            coinCount++;
+            if(coinCount > 10) clearInterval(coinLoop);
+        }, 100);
+    },
+
+    // 5. DEFAITE
+    lose: () => {
+        resumeAudio();
+        const t = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(200, t);
+        osc.frequency.linearRampToValueAtTime(50, t + 1);
+        gain.gain.setValueAtTime(0.2, t);
+        gain.gain.linearRampToValueAtTime(0, t + 1);
+        osc.start(t); osc.stop(t + 1);
+    }
 };
 
-function playTone(freq, type, dur) {
-    if(audioCtx.state === 'suspended') audioCtx.resume();
+// Helper pour jouer une note simple
+function playNote(freq, type, dur, time) {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.type = type; osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
-    osc.start(); osc.stop(audioCtx.currentTime + dur);
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.1, time);
+    gain.gain.exponentialRampToValueAtTime(0.01, time + dur);
+    osc.start(time); osc.stop(time + dur);
 }
 
+// Helper pour le bruit d'une pièce métallique
+function playCoinSound() {
+    const t = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.type = 'sine'; // Son pur métallique
+    osc.frequency.setValueAtTime(2000 + Math.random()*500, t); // Haute fréquence aléatoire
+    gain.gain.setValueAtTime(0.05, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+    osc.start(t); osc.stop(t + 0.1);
+}
+
+function resumeAudio() {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+/* --- LOGIQUE UI --- */
 document.getElementById('btn-reset').onclick = startGame;
 document.getElementById('btn-rules').onclick = () => showMessage("RÈGLES", "Amenez un chien en bas.<br>Associez les chiffres (Somme = 9).");
 document.getElementById('btn-hint').onclick = showHint;
 
-// BOUTON SHUFFLE AVEC SON
 document.getElementById('btn-shuffle').onclick = () => {
-    // On joue le son AVANT la logique pour un feedback immédiat
     SoundFX.shuffle();
-    
     if(shuffleBoardLogic()) {
         renderGrid();
         document.getElementById('shuffle-count').innerText = gameState.shuffleLeft;
@@ -86,7 +167,6 @@ function renderBettingBoard() {
 
 function updateHUD() {
     document.getElementById('score-display').innerText = gameState.score;
-    // Ajout visuel d'alerte quand la réserve est basse (<10)
     const reserveEl = document.getElementById('reserve-count');
     reserveEl.innerText = gameState.reserve;
     if(gameState.reserve < 10) reserveEl.style.color = '#e74c3c';
@@ -99,7 +179,6 @@ function renderGrid() {
         for(let c=0; c<8; c++) {
             let cell = gameState.grid[r][c];
             let tile = document.createElement('div');
-            
             tile.className = 'tile';
             tile.dataset.r = r; tile.dataset.c = c;
             
@@ -108,7 +187,6 @@ function renderGrid() {
                 let badge = document.createElement('div');
                 badge.className = 'dog-id-badge';
                 badge.innerText = cell.dogId;
-                // Style badge inline pour être sûr
                 Object.assign(badge.style, {
                     position: 'absolute', top: '2px', right: '2px',
                     background: '#000', color: '#fff', border: '1px solid #fff',
@@ -121,9 +199,7 @@ function renderGrid() {
                 tile.innerText = cell.val;
                 tile.classList.add(`val-${cell.val}`);
             } else {
-                // Gestion du VIDE (0)
                 tile.classList.add('empty');
-                // Optionnel : Ajouter un petit point ou motif pour montrer que c'est un trou
             }
 
             if(selectedTile && selectedTile.r === r && selectedTile.c === c) {
@@ -188,7 +264,7 @@ function doMatch(r1, c1, r2, c2) {
 
 function handleWin(dogId) {
     clearInterval(timerInterval);
-    SoundFX.win();
+    SoundFX.win(); // LE GROS SON
     let dog = gameState.dogs.find(d => d.id === dogId);
     let points = dog.bet * 10;
     
@@ -213,7 +289,7 @@ function showMessage(title, content) {
     overlay.innerHTML = `
         <h2 style="color:#fff; letter-spacing:3px;">${title}</h2>
         <div style="color:#ccc; line-height:1.5;">${content}</div>
-        <button onclick="startGame()" style="margin-top:20px; background:#2ecc71; color:#000;">NOUVELLE PARTIE</button>
+        <button onclick="startGame()" style="margin-top:20px; background:#2ecc71; color:#000; font-size:1.2em; padding:15px 30px; border:none; border-radius:50px; font-weight:bold; cursor:pointer;">NOUVELLE PARTIE</button>
     `;
 }
 
