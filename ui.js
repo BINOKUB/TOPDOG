@@ -1,11 +1,15 @@
-/* --- UI & AUDIO (V14 - NUMBER CRUSHER) --- */
+/* =========================================
+   TOPDOG UI ENGINE
+   VERSION: V20 (Infinite AI Edition)
+   ========================================= */
+
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const gridElement = document.getElementById('game-grid');
 let selectedTile = null;
 let isProcessing = false;
 let timerInterval = null;
 
-/* --- FORMATTER DE NOMBRE (POUR ÉVITER LE DÉBORDEMENT) --- */
+/* --- FORMATTER D'ARGENT (1.5k, 2M...) --- */
 function formatMoney(num) {
     if (num >= 1000000) {
         return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
@@ -16,7 +20,7 @@ function formatMoney(num) {
     return num;
 }
 
-/* --- AUDIO FX --- */
+/* --- MOTEUR SONORE (SYNTHÉTISEUR) --- */
 const SoundFX = {
     click: () => {
         resumeAudio();
@@ -80,9 +84,9 @@ function playCoinSound() {
 }
 function resumeAudio() { if(audioCtx.state === 'suspended') audioCtx.resume(); }
 
-/* --- LOGIQUE UI --- */
+/* --- CONTRÔLEURS UI --- */
 document.getElementById('btn-reset').onclick = startGame;
-document.getElementById('btn-rules').onclick = () => showMessage("RÈGLES", "Amenez un chien en bas.<br>Associez les chiffres (Somme = 9).");
+document.getElementById('btn-rules').onclick = () => showMessage("RÈGLES", "Amenez un chien en bas.<br>Associez les chiffres (Somme = 9).<br>Réserve ILLIMITÉE !");
 document.getElementById('btn-hint').onclick = showHint;
 
 document.getElementById('btn-shuffle').onclick = () => {
@@ -95,7 +99,7 @@ document.getElementById('btn-shuffle').onclick = () => {
 };
 
 function startGame() {
-    initGameEngine();
+    initGameEngine(); // Appelle la logique V20
     renderBettingBoard();
     updateHUD();
     renderGrid();
@@ -113,7 +117,6 @@ function renderBettingBoard() {
         let div = document.createElement('div');
         div.className = 'bet-card';
         div.id = `bet-dog-${dog.id}`;
-        // Affichage formatté des mises
         div.innerHTML = `
             <div class="dog-name"><div class="dog-badge">${dog.id}</div> ${dog.name}</div>
             <div class="bet-amount">$${formatMoney(dog.bet)}</div>
@@ -123,14 +126,14 @@ function renderBettingBoard() {
 }
 
 function updateHUD() {
-    // AFFICHE LE FORMAT COMPACT (ex: 1.5k) DANS LE SCORE
-    // Note: Le label HUD dans le HTML est "SCORE", mais on affiche la banque cumulée
+    // 1. Affiche la Banque (Score)
     document.getElementById('score-display').innerText = formatMoney(gameState.bankroll);
     
+    // 2. Affiche la Réserve en mode "Infini" (V20)
     const reserveEl = document.getElementById('reserve-count');
-    reserveEl.innerText = gameState.reserve;
-    if(gameState.reserve < 10) reserveEl.style.color = '#e74c3c';
-    else reserveEl.style.color = '#fff';
+    reserveEl.innerHTML = "&infin;"; // Symbole Infini
+    reserveEl.style.color = '#00f3ff'; // Cyan néon
+    reserveEl.style.fontSize = "1.5em";
 }
 
 function renderGrid() {
@@ -186,6 +189,7 @@ function onTileClick(r, c) {
         }
         let prevCell = gameState.grid[selectedTile.r][selectedTile.c];
         let isSumNine = (clickedCell.val + prevCell.val === 9) && (clickedCell.val !== 9 && prevCell.val !== 9);
+        
         if(isSumNine && checkMoveValidity(selectedTile.r, selectedTile.c, r, c)) {
             doMatch(selectedTile.r, selectedTile.c, r, c);
         } else {
@@ -222,13 +226,12 @@ function handleWin(dogId) {
     let dog = gameState.dogs.find(d => d.id === dogId);
     let winAmount = dog.bet * 10;
 
-    // --- MISE À JOUR BANQUE & SAUVEGARDE ---
+    // Mise à jour de la banque et sauvegarde
     gameState.bankroll += winAmount;
-    saveBankroll(gameState.bankroll);
+    saveBankroll(gameState.bankroll); // Appelle la fonction de logic.js
     
     document.getElementById(`bet-dog-${dogId}`).classList.add('winner');
     
-    // Le message affiche aussi le total cumulé
     showMessage(
         "VICTOIRE !", 
         `<div style="font-size:1.5em; color:#fff; margin-bottom:5px;">${dog.name}</div>
@@ -270,4 +273,5 @@ function startTimer() {
     }, 1000);
 }
 
+// Lancement initial
 startGame();
