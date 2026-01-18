@@ -1,14 +1,31 @@
-/* --- UI & AUDIO (V9 - NEON) --- */
+/* --- UI & AUDIO (V11 - NEW SOUNDS) --- */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const gridElement = document.getElementById('game-grid');
 let selectedTile = null;
 let isProcessing = false;
 let timerInterval = null;
 
-// SONS (Inchangés)
 const SoundFX = {
     click: () => playTone(800, 'sine', 0.05),
     match: () => playTone(440, 'triangle', 0.1),
+    // NOUVEAU SON : Shuffle (Bruit de souffle/cartes)
+    shuffle: () => {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const bufferSize = audioCtx.sampleRate * 0.5; // 0.5 secondes
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1; // Bruit blanc
+        }
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        noise.connect(gain);
+        gain.connect(audioCtx.destination);
+        noise.start();
+    },
     win: () => { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => playTone(f, 'square', 0.1), i*100)); },
     lose: () => playTone(150, 'sawtooth', 0.3)
 };
@@ -24,11 +41,15 @@ function playTone(freq, type, dur) {
     osc.start(); osc.stop(audioCtx.currentTime + dur);
 }
 
-// BOUTONS
 document.getElementById('btn-reset').onclick = startGame;
 document.getElementById('btn-rules').onclick = () => showMessage("RÈGLES", "Amenez un chien en bas.<br>Associez les chiffres (Somme = 9).");
 document.getElementById('btn-hint').onclick = showHint;
+
+// BOUTON SHUFFLE AVEC SON
 document.getElementById('btn-shuffle').onclick = () => {
+    // On joue le son AVANT la logique pour un feedback immédiat
+    SoundFX.shuffle();
+    
     if(shuffleBoardLogic()) {
         renderGrid();
         document.getElementById('shuffle-count').innerText = gameState.shuffleLeft;
@@ -64,13 +85,14 @@ function renderBettingBoard() {
 }
 
 function updateHUD() {
-    // Score
     document.getElementById('score-display').innerText = gameState.score;
-    // Réserve
-    document.getElementById('reserve-count').innerText = gameState.reserve;
+    // Ajout visuel d'alerte quand la réserve est basse (<10)
+    const reserveEl = document.getElementById('reserve-count');
+    reserveEl.innerText = gameState.reserve;
+    if(gameState.reserve < 10) reserveEl.style.color = '#e74c3c';
+    else reserveEl.style.color = '#fff';
 }
 
-// --- C'EST ICI QUE CA CHANGE POUR LES COULEURS ---
 function renderGrid() {
     gridElement.innerHTML = '';
     for(let r=0; r<8; r++) {
@@ -78,35 +100,32 @@ function renderGrid() {
             let cell = gameState.grid[r][c];
             let tile = document.createElement('div');
             
-            // Classe de base
             tile.className = 'tile';
             tile.dataset.r = r; tile.dataset.c = c;
             
-            // Gestion Contenu
             if(cell.val === 9) {
                 tile.classList.add('nine');
-                // Badge ID Chien
                 let badge = document.createElement('div');
                 badge.className = 'dog-id-badge';
                 badge.innerText = cell.dogId;
-                // On stylise le badge pour qu'il soit visible sur l'image
-                badge.style.position = 'absolute'; badge.style.top='2px'; badge.style.right='2px';
-                badge.style.background='#000'; badge.style.color='#fff'; 
-                badge.style.border='1px solid #fff'; badge.style.borderRadius='50%';
-                badge.style.width='16px'; badge.style.height='16px'; 
-                badge.style.display='flex'; badge.style.alignItems='center'; badge.style.justifyContent='center';
-                badge.style.fontSize='10px'; badge.style.fontWeight='bold';
-                
+                // Style badge inline pour être sûr
+                Object.assign(badge.style, {
+                    position: 'absolute', top: '2px', right: '2px',
+                    background: '#000', color: '#fff', border: '1px solid #fff',
+                    borderRadius: '50%', width: '16px', height: '16px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '10px', fontWeight: 'bold'
+                });
                 tile.appendChild(badge);
             } else if(cell.val > 0) {
                 tile.innerText = cell.val;
-                // ICI : ON AJOUTE LA CLASSE DE COULEUR (ex: .val-8)
                 tile.classList.add(`val-${cell.val}`);
             } else {
+                // Gestion du VIDE (0)
                 tile.classList.add('empty');
+                // Optionnel : Ajouter un petit point ou motif pour montrer que c'est un trou
             }
 
-            // Gestion Sélection
             if(selectedTile && selectedTile.r === r && selectedTile.c === c) {
                 tile.classList.add('selected');
             }
