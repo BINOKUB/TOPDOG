@@ -21,39 +21,23 @@ function createRandomBag() {
     return bag.sort(() => Math.random() - 0.5);
 }
 
-// Fonction utilitaire pour piocher intelligemment SANS doublon vertical
 function getNextNonMatching(forbiddenValue, queue) {
-    // Si la file est vide, on en recrée une
     if(queue.length === 0) return Math.floor(Math.random()*8)+1;
     
-    // 1. Essai direct : le premier de la file
-    if(queue[0] !== forbiddenValue) {
-        return queue.shift();
-    }
+    // 1. Essai direct
+    if(queue[0] !== forbiddenValue) return queue.shift();
     
-    // 2. Si ça match l'interdit, on cherche plus loin dans la file
+    // 2. Recherche
     let foundIndex = -1;
-    // On regarde les 12 prochains chiffres (large marge de sécurité)
     for(let i=1; i<Math.min(queue.length, 12); i++) {
-        if(queue[i] !== forbiddenValue) {
-            foundIndex = i;
-            break;
-        }
+        if(queue[i] !== forbiddenValue) { foundIndex = i; break; }
     }
     
-    if(foundIndex !== -1) {
-        // On a trouvé un candidat valide plus loin, on l'extrait
-        return queue.splice(foundIndex, 1)[0];
-    }
+    if(foundIndex !== -1) return queue.splice(foundIndex, 1)[0];
     
-    // 3. Cas extrême (ne devrait pas arriver avec un Sac équilibré)
-    // Si tout est pareil, on prend quand même pour ne pas crasher, 
-    // ou on génère un random forcé différent.
+    // 3. Mutation de secours
     let fallback = queue.shift();
-    if(fallback === forbiddenValue) {
-        // Triche : on transforme le chiffre pour forcer la différence
-        fallback = (fallback % 8) + 1; 
-    }
+    if(fallback === forbiddenValue) fallback = (fallback % 8) + 1; 
     return fallback;
 }
 
@@ -67,12 +51,11 @@ function saveBankroll(amount) {
 
 /* --- MOTEUR --- */
 function initGameEngine() {
-    console.log("%c --- TOPDOG V15 (VERTICAL FIREWALL) --- ", "background: #fff; color: #000; font-size:20px; font-weight:bold;");
+    console.log("%c --- TOPDOG V16 (MUTATION FIX) --- ", "background: #ff0000; color: #fff; font-size:20px; font-weight:bold;");
     
     gameState.dogs = [];
     gameState.bankroll = loadBankroll();
     gameState.reserveQueue = []; 
-    // On prépare une GROSSE file d'attente dès le début
     for(let k=0; k<10; k++) gameState.reserveQueue = gameState.reserveQueue.concat(createRandomBag());
 
     let usedNames = [];
@@ -87,25 +70,19 @@ function initGameEngine() {
     let newGrid = Array(8).fill().map(() => Array(8).fill(0));
     let startCols = Math.random() > 0.5 ? [0, 2, 4, 6] : [1, 3, 5, 7];
     
-    // 1. Placement Chiens
     gameState.dogs.forEach((dog, i) => {
         let c = startCols[i];
         let r = Math.floor(Math.random() * 2); 
         newGrid[r][c] = { val: 9, dogId: dog.id };
     });
 
-    // 2. Remplissage Initial AVEC PROTECTION VERTICALE STRICTE
     for(let c=0; c<8; c++) {
-        for(let r=0; r<8; r++) { // On remplit de haut en bas
+        for(let r=0; r<8; r++) { 
             if(!newGrid[r][c]) {
-                // On regarde ce qu'il y a au-dessus (r-1)
-                // Note: Au chargement initial, on remplit case par case, 
-                // donc on doit vérifier avec la case PRÉCÉDENTE (r-1) pour ne pas créer de pile.
                 let forbidden = -1;
                 if(r > 0 && newGrid[r-1][c].val !== 0 && newGrid[r-1][c].val !== 9) {
                     forbidden = newGrid[r-1][c].val;
                 }
-
                 let num = getNextNonMatching(forbidden, gameState.reserveQueue);
                 newGrid[r][c] = { val: num, dogId: null };
             }
@@ -120,7 +97,6 @@ function initGameEngine() {
     gameState.status = 'playing';
     gameState.timeLeft = CONFIG.timeLimit;
     
-    // On recharge la queue si elle a baissé
     if(gameState.reserveQueue.length < 20) gameState.reserveQueue = gameState.reserveQueue.concat(createRandomBag());
 
     return gameState;
@@ -174,43 +150,29 @@ function processMatch(r1, c1, r2, c2) {
     return true;
 }
 
-/* --- GRAVITÉ V15 : STRICT NO-DUPLICATE --- */
 function applyGravityLogic() {
-    // Recharger la file si nécessaire
     if(gameState.reserveQueue.length < 20) gameState.reserveQueue = gameState.reserveQueue.concat(createRandomBag());
 
     for(let c=0; c<8; c++) {
         let colItems = [];
-        // 1. Récupérer les solides
         for(let r=0; r<8; r++) {
             if(gameState.grid[r][c].val !== 0) {
                 colItems.push({...gameState.grid[r][c]});
             }
         }
         
-        // 2. Remplir le vide au sommet
         while(colItems.length < 8) {
             let newVal = 0;
-            
             if(gameState.reserve > 0) {
                 gameState.reserve--;
-                
-                // --- LE FIREWALL ---
-                // On regarde le chiffre qui est actuellement au sommet de la pile (index 0)
-                // C'est celui sur lequel le nouveau chiffre va se poser.
                 let valueBelow = -1;
                 if(colItems.length > 0 && colItems[0].val !== 9) {
                     valueBelow = colItems[0].val;
                 }
-                
-                // On demande à la file de nous donner un chiffre QUI N'EST PAS 'valueBelow'
                 newVal = getNextNonMatching(valueBelow, gameState.reserveQueue);
             }
-            
-            // Ajout au sommet
             colItems.unshift({ val: newVal, dogId: null });
         }
-
         for(let r=0; r<8; r++) gameState.grid[r][c] = colItems[r];
     }
 }
@@ -226,8 +188,9 @@ function checkWinCondition() {
     return { won: false };
 }
 
+/* --- LE CORRECTIF V16 --- */
 function shuffleBoardLogic() {
-    console.log("--- BRASSAGE V15 ---");
+    console.log("--- BRASSAGE V16 ---");
     if(gameState.shuffleLeft <= 0) return false;
     gameState.shuffleLeft--;
 
@@ -239,19 +202,24 @@ function shuffleBoardLogic() {
     }
     numbers.sort(() => Math.random() - 0.5);
     
-    // Reconstitution des colonnes avec check anti-doublon
     let columns = Array(8).fill().map(() => []);
     let colPtr = 0;
     
-    // On essaie de distribuer équitablement
-    numbers.forEach(num => {
+    numbers.forEach(numObj => {
         let attempts = 0;
-        // Si le sommet de la colonne actuelle est identique au num, on passe à la colonne suivante
-        while (columns[colPtr].length > 0 && columns[colPtr][columns[colPtr].length-1].val === num && attempts < 8) {
+        // LE FIX EST ICI : on utilise numObj.val au lieu de numObj
+        while (columns[colPtr].length > 0 && columns[colPtr][columns[colPtr].length-1].val === numObj.val && attempts < 8) {
              colPtr = (colPtr + 1) % 8; attempts++;
         }
         
-        if(columns[colPtr].length < 7) columns[colPtr].push(num);
+        // SÉCURITÉ DE DERNIER RECOURS (MUTATION)
+        // Si après 8 essais on est toujours sur un doublon (ex: que des 7 partout),
+        // on transforme le chiffre pour briser la chaîne !
+        if(columns[colPtr].length > 0 && columns[colPtr][columns[colPtr].length-1].val === numObj.val) {
+            numObj.val = (numObj.val % 8) + 1; // 7 devient 8, 8 devient 1...
+        }
+
+        if(columns[colPtr].length < 7) columns[colPtr].push(numObj);
         colPtr = (colPtr + 1) % 8;
     });
 
