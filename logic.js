@@ -6,7 +6,7 @@
 const CONFIG = {
     gridSize: 8,
     timeLimit: 120, 
-    dogNames: ["SPARTACUS", "TITAN", "HURRICANE", "VIPER", "GHOST", "BANDIT", "REX", "CHAOS", "ZEUS", "TANK", "TORNADO", "MERCURY", "BALTO", "MAXIMUS", "THOR", "COMET", "FLASH", "ECLAIR", "APOLLO", "CYCLONE", "PHANTOM", "STORM"]
+    dogNames: ["SPARTACUS", "TITAN", "HURRICANE", "VIPER", "GHOST", "BANDIT", "REX", "CHAOS", "ZEUS", "TANK", "TORNADO", "MERCURY", "BALTO", "MAXIMUS", "THOR", "COMET", "FLASH", "ECLAIR", "APOLLO", "CYCLONE", "PHANTOM", "STORM", "TEPPY"]
 };
 
 let gameState = {
