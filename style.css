@@ -146,3 +146,13 @@ button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.5);
     display: none; flex-direction: column; align-items: center; justify-content: center;
     text-align: center; padding: 20px;
 }
+
+/* Animation pour l'Indice */
+.tile.hint-flash {
+    background-color: #2ecc71 !important;
+    color: #000 !important;
+    box-shadow: 0 0 20px #2ecc71;
+    transform: scale(1.1);
+    z-index: 50;
+    transition: all 0.2s;
+}
