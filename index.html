@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TOPDOG - Accueil</title>
+    <style>
+        :root {
+            --bg: #050505;
+            --cyan: #00f3ff;
+            --orange: #e67e22;
+            --green: #2ecc71;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--bg);
+            color: #fff;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        /* FOND ANIMÉ SUBTIL */
+        .background-glow {
+            position: absolute; width: 200vw; height: 200vw;
+            background: radial-gradient(circle, rgba(0, 243, 255, 0.03) 0%, rgba(0,0,0,0) 70%);
+            animation: rotate 60s linear infinite; z-index: -1;
+        }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* LOGO */
+        h1 {
+            font-size: 4em; font-weight: 900; font-style: italic; margin: 0;
+            background: linear-gradient(45deg, #fff, #888);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: -2px; text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .subtitle {
+            color: var(--cyan); letter-spacing: 4px; font-weight: bold;
+            font-size: 0.9em; margin-top: -10px; margin-bottom: 40px; text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+        }
+
+        /* CONTENEUR CARTE */
+        .card-container {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%; max-width: 400px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; gap: 20px;
+        }
+
+        /* EXEMPLE DE JEU (VISUEL) */
+        .demo-row {
+            display: flex; justify-content: center; align-items: center; gap: 15px;
+            margin: 10px 0;
+        }
+        .mini-tile {
+            width: 50px; height: 50px;
+            background: #111; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1.5em;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .t-4 { color: #ff00ff; border: 1px solid rgba(255,0,255,0.3); }
+        .t-5 { color: var(--green); border: 1px solid rgba(46,204,113,0.3); }
+        .plus { font-size: 1.5em; color: #555; }
+        .result { color: #fff; font-weight: bold; }
+
+        /* TEXTE EXPLICATIF */
+        p { color: #aaa; line-height: 1.6; font-size: 0.95em; margin: 0; }
+        .highlight { color: #fff; font-weight: bold; }
+
+        /* ÉTAPES */
+        .steps { display: flex; justify-content: space-between; margin-top: 10px; }
+        .step { font-size: 0.7em; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+        .step span { display: block; font-size: 2.5em; margin-bottom: 5px; }
+
+        /* BOUTON D'ACTION */
+        .btn-play {
+            background: linear-gradient(90deg, var(--orange), #d35400);
+            color: white; text-decoration: none;
+            padding: 18px 0; border-radius: 50px;
+            font-size: 1.2em; font-weight: bold; letter-spacing: 1px;
+            box-shadow: 0 10px 30px rgba(230, 126, 34, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: block; width: 100%; margin-top: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn-play:active { transform: scale(0.96); box-shadow: 0 5px 10px rgba(230, 126, 34, 0.2); }
+
+        /* PIED DE PAGE */
+        .footer {
+            margin-top: 30px; font-size: 0.7em; color: #444; font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background-glow"></div>
+
+    <h1>TOPDOG</h1>
+    <div class="subtitle">L'Élite du Pari Stratégique</div>
+
+    <div class="card-container">
+        
+        <div style="text-align:center;">
+            <p style="font-size:0.8em; text-transform:uppercase; color:var(--cyan); margin-bottom:10px;">La Règle d'Or</p>
+            <div class="demo-row">
+                <div class="mini-tile t-4">4</div>
+                <div class="plus">+</div>
+                <div class="mini-tile t-5">5</div>
+                <div class="plus">=</div>
+                <div class="result">9</div>
+            </div>
+        </div>
+
+        <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); width:100%;">
+
+        <p>
+            Plongez dans l'arène. Misez sur vos chiens favoris et frayez-leur un chemin en éliminant les obstacles.<br><br>
+            <span class="highlight">Rapidité</span> • <span class="highlight">Stratégie</span> • <span class="highlight">Cash Out</span>
+        </p>
+
+        <a href="topdog.html" class="btn-play">LANCER LE JEU</a>
+
+    </div>
+
+    <div class="footer">V1.0 GOLD EDITION • STUDIO CODE</div>
+
+</body>
+</html>
