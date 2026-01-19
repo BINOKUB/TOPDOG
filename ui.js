@@ -304,9 +304,96 @@ function handleWin(dogId) {
     );
 }
 
+/* --- SYSTÈME D'INDICE STRATÉGIQUE (SMART HINT) --- */
 function showHint() {
-    document.getElementById('btn-hint').style.color = 'red';
-    setTimeout(() => document.getElementById('btn-hint').style.color = '', 500);
+    // 1. On repère où sont les chiens
+    let dogCols = [];
+    let dogsPositions = [];
+    for(let r=0; r<8; r++) {
+        for(let c=0; c<8; c++) {
+            if(gameState.grid[r][c].val === 9) {
+                dogCols.push(c);
+                dogsPositions.push({r:r, c:c});
+            }
+        }
+    }
+
+    let possibleMoves = [];
+
+    // 2. On scanne TOUS les coups possibles sur le plateau
+    // On regarde chaque case et ses voisins (Droite et Bas suffisent pour ne pas faire de doublons)
+    for(let r=0; r<8; r++) {
+        for(let c=0; c<8; c++) {
+            let cell = gameState.grid[r][c];
+            if(cell.val === 0 || cell.val === 9) continue;
+
+            // Vérif Voisin DROITE
+            if(c < 7) {
+                let neighbor = gameState.grid[r][c+1];
+                if(neighbor.val !== 0 && neighbor.val !== 9) {
+                    if(cell.val + neighbor.val === 9) {
+                        possibleMoves.push({ r1:r, c1:c, r2:r, c2:c+1, score: 0 });
+                    }
+                }
+            }
+            // Vérif Voisin BAS
+            if(r < 7) {
+                let neighbor = gameState.grid[r+1][c];
+                if(neighbor.val !== 0 && neighbor.val !== 9) {
+                    if(cell.val + neighbor.val === 9) {
+                        possibleMoves.push({ r1:r, c1:c, r2:r+1, c2:c, score: 0 });
+                    }
+                }
+            }
+        }
+    }
+
+    if(possibleMoves.length === 0) {
+        // Aucun coup possible ? On fait clignoter le bouton en rouge
+        let btn = document.getElementById('btn-hint');
+        btn.style.background = 'red';
+        setTimeout(() => btn.style.background = '', 500);
+        return;
+    }
+
+    // 3. LE CERVEAU : On donne un score à chaque coup
+    possibleMoves.forEach(move => {
+        // Bonus si c'est dans la colonne d'un chien
+        if(dogCols.includes(move.c1) || dogCols.includes(move.c2)) {
+            move.score += 50;
+        }
+
+        // SUPER BONUS : Si c'est le bloc juste SOUS un chien (Le Bloqueur)
+        dogsPositions.forEach(dog => {
+            // Si le chien est juste au-dessus de la case 1
+            if(dog.c === move.c1 && dog.r === move.r1 - 1) move.score += 1000;
+            // Si le chien est juste au-dessus de la case 2
+            if(dog.c === move.c2 && dog.r === move.r2 - 1) move.score += 1000;
+        });
+        
+        // Petit bonus pour les coups plus bas (souvent plus stratégiques pour faire tomber)
+        move.score += move.r1; 
+    });
+
+    // 4. On trie pour avoir le meilleur score en premier
+    possibleMoves.sort((a, b) => b.score - a.score);
+    let bestMove = possibleMoves[0];
+
+    // 5. ANIMATION VISUELLE
+    let t1 = document.querySelector(`.tile[data-r="${bestMove.r1}"][data-c="${bestMove.c1}"]`);
+    let t2 = document.querySelector(`.tile[data-r="${bestMove.r2}"][data-c="${bestMove.c2}"]`);
+
+    if(t1 && t2) {
+        SoundFX.click(); // Petit son pour confirmer
+        t1.classList.add('hint-flash');
+        t2.classList.add('hint-flash');
+
+        // On enlève l'effet après 1 seconde
+        setTimeout(() => {
+            t1.classList.remove('hint-flash');
+            t2.classList.remove('hint-flash');
+        }, 1000);
+    }
 }
 
 /* --- LE MESSAGE BOX DYNAMIQUE (Modifié V25) --- */
