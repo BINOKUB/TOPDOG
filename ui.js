@@ -284,11 +284,17 @@ function handleWin(dogId) {
 
     let dog = gameState.dogs.find(d => d.id === dogId);
     let winAmount = dog.bet * 10;
+    
+    // 1. On met à jour la banque
     gameState.bankroll += winAmount;
     saveBankroll(gameState.bankroll);
     
+    // 2. CORRECTIF ICI : On met à jour l'affichage du fond (HUD) TOUT DE SUITE
+    updateHUD(); 
+    
     document.getElementById(`bet-dog-${dogId}`).classList.add('winner');
     
+    // 3. Ensuite on affiche le message
     showMessage(
         "VICTOIRE !", 
         `<div style="font-size:1.5em; color:#fff; margin-bottom:5px;">${dog.name}</div>
