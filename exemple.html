@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TOPDOG - Démo</title>
+    <style>
+        :root { --bg: #050505; --cyan: #00f3ff; --orange: #e67e22; }
+        body {
+            margin: 0; padding: 0; background-color: var(--bg); color: #fff;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; text-align: center;
+        }
+
+        h2 {
+            font-style: italic; margin-bottom: 20px;
+            background: linear-gradient(45deg, #fff, #aaa);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+
+        /* CONTENEUR VIDÉO (Cadre Néon) */
+        .video-wrapper {
+            width: 90%; max-width: 400px;
+            border: 2px solid #333; border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.15);
+            background: #000;
+            margin-bottom: 30px;
+        }
+
+        video {
+            width: 100%; display: block;
+        }
+
+        /* BOUTON JOUER */
+        .btn-play {
+            background: linear-gradient(90deg, var(--orange), #d35400);
+            color: white; text-decoration: none;
+            padding: 15px 40px; border-radius: 50px;
+            font-size: 1.2em; font-weight: bold; letter-spacing: 1px;
+            box-shadow: 0 10px 30px rgba(230, 126, 34, 0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+        .btn-play:active { transform: scale(0.95); }
+
+        /* LIEN RETOUR */
+        .back-link {
+            margin-top: 20px; color: #666; text-decoration: none; font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>DÉMONSTRATION</h2>
+
+    <div class="video-wrapper">
+        <video controls autoplay muted loop playsinline>
+            <source src="demo.mp4" type="video/mp4">
+            Votre navigateur ne supporte pas la vidéo.
+        </video>
+    </div>
+
+    <a href="topdog.html" class="btn-play">C'EST PARTI ! 🐕</a>
+    
+    <a href="index.html" class="back-link">Retour à l'accueil</a>
+
+</body>
+</html>
