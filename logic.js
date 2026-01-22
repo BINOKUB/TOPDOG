@@ -171,7 +171,18 @@ function initGameEngine() {
         let name;
         do { name = CONFIG.dogNames[Math.floor(Math.random() * CONFIG.dogNames.length)]; } while(usedNames.includes(name));
         usedNames.push(name);
-        let bet = Math.floor(Math.random() * 46) * 100 + 500;
+       /* let bet = Math.floor(Math.random() * 46) * 100 + 500; */
+       // AJOUT ICI 
+/* 1. Mets ici tous les montants que tu veux voir apparaître (séparés par des virgules) */
+const misesPossibles = [500, 1000, 2500, 5000, 7500, 10000, 25000, 50000, 100000];
+
+// 2. Le jeu va en piocher un au hasard dans ta liste
+let bet = misesPossibles[Math.floor(Math.random() * misesPossibles.length)];
+
+       // FIN AJOUT
+
+
+       
         gameState.dogs.push({ id: i, name: name, bet: bet });
     }
 
