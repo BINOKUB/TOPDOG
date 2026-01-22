@@ -174,7 +174,7 @@ function initGameEngine() {
        /* let bet = Math.floor(Math.random() * 46) * 100 + 500; */
        // AJOUT ICI 
 /* 1. Mets ici tous les montants que tu veux voir apparaître (séparés par des virgules) */
-const misesPossibles = [500, 1000, 2500, 5000, 7500, 10000, 25000, 50000, 100000];
+const misesPossibles = [500, 1000, 2500, 5000, 7500, 75000, 80000, 10000, 25000, 50000, 100000, 150000];
 
 // 2. Le jeu va en piocher un au hasard dans ta liste
 let bet = misesPossibles[Math.floor(Math.random() * misesPossibles.length)];
