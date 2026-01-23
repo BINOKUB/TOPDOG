@@ -10,36 +10,45 @@
     <link rel="manifest" href="./manifest.json">
     
     <link rel="stylesheet" href="style.css?v=FINAL">
-    <link rel="stylesheet" href="badges.css"> <link id="skin-stylesheet" rel="stylesheet" href="">
+    <link rel="stylesheet" href="badges.css"> 
+    <link id="skin-stylesheet" rel="stylesheet" href="">
     
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
     <style>
+        /* --- LAYOUT MOBILE ROBUSTE --- */
+        html {
+            height: 100%;
+        }
         body { 
+            /* 100dvh = Hauteur dynamique qui tient compte de la barre d'adresse mobile */
+            height: 100dvh; 
+            margin: 0; padding: 0;
+            overflow: hidden; /* Interdit le scroll */
+            background: #000;
+            transition: background 0.5s ease;
+            
+            /* FLEXBOX VERTICAL : Pour tout empiler proprement */
+            display: flex; 
+            flex-direction: column; 
+            
             overscroll-behavior: none; 
             -webkit-user-select: none; user-select: none; 
             -webkit-tap-highlight-color: transparent; 
-            min-height: 100vh; margin: 0;
-            transition: background 0.5s ease;
-            /* Layout vertical flexible pour que tout rentre */
-            display: flex; flex-direction: column; 
-            justify-content: space-between; /* Répartit l'espace */
-            overflow: hidden; /* Empêche le scroll global */
         }
 
+        /* 1. ÉCRAN TITRE */
         #start-screen {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             background: #050505; z-index: 999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-
         .logo-title {
             font-size: 3em; font-weight: 900; font-style: italic;
             background: linear-gradient(45deg, #fff, #888);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             margin-bottom: 20px; letter-spacing: 4px;
         }
-
         .btn-start {
             background: #e67e22; color: #fff; border: none;
             padding: 15px 40px; font-size: 1.5em; font-weight: bold;
@@ -47,34 +56,53 @@
             box-shadow: 0 0 20px rgba(230, 126, 34, 0.4);
             animation: pulse 1.5s infinite;
         }
-
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-        /* --- CORRECTIF MOBILE (MODE COMPACT) --- */
-        /* Si l'écran est petit ou mobile, on resserre tout */
-        @media (max-height: 850px) or (max-width: 600px) {
-            .top-bar { padding: 5px 10px !important; }
-            .top-bar h1 { font-size: 1.5em !important; margin: 0 !important; }
-            .header-buttons .btn-circle { width: 30px; height: 30px; font-size: 1em; }
-            
-            .hud { margin: 5px 0 !important; padding: 5px !important; }
-            .hud-item { font-size: 0.8em; }
-            
-            .game-container { margin: 0 auto !important; transform: scale(0.95); }
-            
-            /* On remonte les contrôles pour qu'ils soient visibles */
-            .controls { 
-                margin-top: 0 !important; 
-                padding-bottom: 20px !important; /* Marge de sécurité bas d'écran */
-                padding-top: 5px !important;
-            }
-            .controls button { 
-                padding: 10px 15px !important; 
-                font-size: 0.9em !important; 
-            }
-            
-            /* Ajustement Badge */
-            .badge { font-size: 8px !important; padding: 2px 4px !important; }
+        /* 2. ÉLÉMENTS FIXES (Ne rétrécissent jamais) */
+        .top-bar, .hud, .controls {
+            flex-shrink: 0; /* INTERDIT de rétrécir ces zones */
+            z-index: 10;
+        }
+
+        /* 3. LE CŒUR DU JEU (Flexible) */
+        .game-container {
+            flex-grow: 1; /* Prend tout l'espace restant */
+            min-height: 0; /* CRUCIAL : Autorise le contenu à rétrécir si l'écran est petit */
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            width: 100%;
+            position: relative;
+        }
+
+        /* La grille s'adapte à l'espace disponible */
+        #game-grid {
+            max-width: 95%;
+            max-height: 95%; /* Ne jamais dépasser la zone flexible */
+            aspect-ratio: 1 / 1; /* Reste carré */
+            /* Pas de taille fixe en px ici, on laisse le flex gérer */
+        }
+
+        /* 4. CONTRÔLES (Boutons du bas) */
+        .controls {
+            padding-bottom: env(safe-area-inset-bottom, 20px); /* Marge pour la barre iPhone */
+            padding-top: 10px;
+            background: rgba(0,0,0,0.2); /* Léger fond */
+            display: flex; justify-content: center; gap: 10px;
+        }
+        
+        /* Ajustements boutons pour petits écrans */
+        .controls button {
+            padding: 12px 20px;
+            font-size: 1em;
+        }
+
+        /* --- MEDIA QUERIES (Ajustements fins) --- */
+        @media (max-height: 700px) {
+            .logo-title { font-size: 2em; }
+            .top-bar h1 { font-size: 1.5em; margin: 0; }
+            .hud { padding: 5px; }
+            .controls button { padding: 8px 15px; font-size: 0.9em; }
         }
     </style>
 </head>
@@ -100,7 +128,6 @@
     </div>
 
     <div id="betting-board"></div>
-
     <div class="hud">
         <div class="hud-item">
             <span class="hud-label">RÉSERVE</span>
@@ -147,13 +174,7 @@
     <script>
         window.addEventListener('load', function() {
             console.log("🚀 Lancement du système TopDog...");
-
-            if(typeof Cosmetics !== 'undefined') {
-                Cosmetics.init();
-            } else {
-                console.error("❌ ERREUR : cosmetics.js non chargé !");
-            }
-
+            if(typeof Cosmetics !== 'undefined') Cosmetics.init();
             updateBadge();
         });
 
@@ -162,20 +183,15 @@
             const inventory = JSON.parse(localStorage.getItem('topdog_inventory_badge') || '[]');
             
             if (inventory.includes('badge_goat')) {
-                badgeEl.className = 'badge badge-goat';
-                badgeEl.innerHTML = '🐐 G.O.A.T.';
+                badgeEl.className = 'badge badge-goat'; badgeEl.innerHTML = '🐐 G.O.A.T.';
             } else if (inventory.includes('badge_legend')) {
-                badgeEl.className = 'badge badge-legend';
-                badgeEl.innerHTML = '💎 LEGEND';
+                badgeEl.className = 'badge badge-legend'; badgeEl.innerHTML = '💎 LEGEND';
             } else if (inventory.includes('badge_apex')) {
-                badgeEl.className = 'badge badge-apex';
-                badgeEl.innerHTML = '👑 APEX';
+                badgeEl.className = 'badge badge-apex'; badgeEl.innerHTML = '👑 APEX';
             } else if (inventory.includes('badge_alpha')) {
-                badgeEl.className = 'badge badge-alpha';
-                badgeEl.innerHTML = '🐺 ALPHA';
+                badgeEl.className = 'badge badge-alpha'; badgeEl.innerHTML = '🐺 ALPHA';
             } else {
-                badgeEl.className = 'badge badge-sheep';
-                badgeEl.innerHTML = '🐑 BREBIS';
+                badgeEl.className = 'badge badge-sheep'; badgeEl.innerHTML = '🐑 BREBIS';
             }
         }
     </script>
