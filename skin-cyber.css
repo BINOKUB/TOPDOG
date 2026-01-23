@@ -1,0 +1,99 @@
+/* SKIN CYBER MATRIX (V2 - TERMINAL HACKER) */
+:root {
+    --cyan: #00ff00; /* Vert Matrix */
+}
+
+/* 1. FOND TERMINAL (Noir Profond) */
+body {
+    background-color: #000000 !important;
+    background-image: linear-gradient(0deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(0, 255, 0, .05) 25%, rgba(0, 255, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .05) 75%, rgba(0, 255, 0, .05) 76%, transparent 77%, transparent) !important;
+    background-size: 50px 50px !important;
+    color: #00ff00 !important;
+    font-family: 'Courier New', Courier, monospace !important; /* Police Hacker */
+}
+
+/* 2. HUD (Style Console) */
+.hud-label { color: #008f11 !important; text-transform: uppercase; }
+.hud-value { color: #00ff00 !important; text-shadow: 0 0 5px #00ff00; }
+.skin-text { color: #00ff00 !important; }
+#timer-container { color: #fff !important; text-shadow: 0 0 5px #fff; }
+
+/* 3. GRILLE (Circuit imprimé) */
+#game-grid {
+    background: rgba(0, 20, 0, 0.9);
+    border: 2px solid #00ff00;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+}
+
+/* 4. TUILES (Écrans cathodiques) */
+.tile {
+    background: #001100 !important; /* Vert très sombre */
+    border: 1px solid #005500 !important;
+    
+    /* TEXTE PHOSPHORESCENT */
+    color: #00ff00 !important; 
+    font-weight: bold !important;
+    font-family: 'Courier New', monospace !important;
+    
+    box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.1);
+    text-shadow: 0 0 5px #00ff00; /* Lueur autour du texte */
+}
+
+/* Tuiles vides */
+.tile.empty {
+    background: rgba(0, 255, 0, 0.02) !important;
+    border: 1px solid rgba(0, 255, 0, 0.1) !important;
+    box-shadow: none !important;
+}
+
+/* FORCE TOUS LES CHIFFRES EN VERT MATRIX */
+.val-1, .val-2, .val-3, .val-4, .val-5, .val-6, .val-7, .val-8 {
+    color: #00ff00 !important;
+}
+
+/* 5. LE CHIEN (Le Glitch) */
+.tile.nine {
+    background: #00ff00 !important; /* Fond Vert Flash */
+    color: #000 !important;
+    
+    border: 2px solid #fff !important;
+    box-shadow: 0 0 15px #00ff00;
+    
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden !important;
+    padding: 0 !important;
+}
+
+/* L'EMOJI */
+.tile.nine::before {
+    content: '🐶'; 
+    font-size: 1.6em !important;
+    line-height: 1 !important;
+    /* Petit effet de filtre pour faire "digital" */
+    filter: sepia(100%) hue-rotate(50deg) saturate(300%);
+}
+
+/* 6. BOUTONS */
+.btn-circle {
+    background: #000 !important;
+    color: #00ff00 !important;
+    border: 1px solid #00ff00 !important;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.top-bar h1 {
+    color: #00ff00 !important;
+    text-shadow: 2px 2px 0px #003300;
+    font-family: 'Courier New', monospace !important;
+    letter-spacing: -2px;
+}
+
+/* Badge Nom du chien */
+.dog-id-badge {
+    background: #000 !important;
+    color: #00ff00 !important;
+    border: 1px solid #00ff00 !important;
+}
+
