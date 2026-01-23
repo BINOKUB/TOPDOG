@@ -6,15 +6,22 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>TOPDOG</title>
+    
     <link rel="manifest" href="./manifest.json">
-    <link rel="stylesheet" href="style.css?v=24"> 
-    <link rel="icon" type="image/png" href="./icon-dog-192.png">
-    <link rel="apple-touch-icon" href="./icon-dog-192.png">
+    
+    <link rel="stylesheet" href="style.css?v=FINAL">
+    <link rel="stylesheet" href="badges.css"> <link id="skin-stylesheet" rel="stylesheet" href="">
     
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
     <style>
-        body { overscroll-behavior: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { 
+            overscroll-behavior: none; 
+            -webkit-user-select: none; user-select: none; 
+            -webkit-tap-highlight-color: transparent; 
+            min-height: 100vh; margin: 0;
+            transition: background 0.5s ease;
+        }
         #start-screen {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             background: #050505; z-index: 999;
@@ -45,8 +52,13 @@
     </div>
 
     <div class="top-bar">
-        <h1>TOPDOG</h1>
+        <div style="display: flex; align-items: center;">
+            <h1>TOPDOG</h1>
+            <span id="player-badge" class="badge badge-sheep">🐑 BREBIS</span>
+        </div>
+
         <div class="header-buttons">
+            <button class="btn-circle" onclick="window.location.href='store.html'" style="font-size:1.2em;">🛍️</button>
             <button class="btn-circle" id="btn-sound">🔊</button>
             <button class="btn-circle" id="btn-rules">?</button>
         </div>
@@ -57,7 +69,7 @@
     <div class="hud">
         <div class="hud-item">
             <span class="hud-label">RÉSERVE</span>
-            <span id="reserve-count" class="hud-value">&infin;</span>
+            <span id="reserve-count" class="hud-value skin-text">&infin;</span>
         </div>
         <div class="hud-item">
             <span class="hud-label">TEMPS</span>
@@ -92,5 +104,52 @@
         }
     </script>
 
-    <script src="logic.js?v=23"></script> <script src="ui.js?v=25"></script>    </body>
+    <script src="catalog.js?v=FINAL"></script>
+    <script src="cosmetics.js?v=FINAL"></script>
+    <script src="logic.js?v=FINAL"></script>
+    <script src="ui.js?v=FINAL"></script>
+
+    <script>
+        window.addEventListener('load', function() {
+            console.log("🚀 Lancement du système TopDog...");
+
+            // 1. Initialisation des Cosmétiques (Skins/Chiens)
+            if(typeof Cosmetics !== 'undefined') {
+                Cosmetics.init();
+            } else {
+                console.error("❌ ERREUR : cosmetics.js non chargé !");
+            }
+
+            // 2. Gestion du Badge de Prestige
+            updateBadge();
+        });
+
+        // Fonction de mise à jour du badge selon l'inventaire
+        function updateBadge() {
+            const badgeEl = document.getElementById('player-badge');
+            // Récupère l'inventaire des badges
+            const inventory = JSON.parse(localStorage.getItem('topdog_inventory_badge') || '[]');
+            
+            // On cherche le meilleur badge possédé (Ordre décroissant de puissance)
+            if (inventory.includes('badge_goat')) {
+                badgeEl.className = 'badge badge-goat';
+                badgeEl.innerHTML = '🐐 G.O.A.T.';
+            } else if (inventory.includes('badge_legend')) {
+                badgeEl.className = 'badge badge-legend';
+                badgeEl.innerHTML = '💎 LEGEND';
+            } else if (inventory.includes('badge_apex')) {
+                badgeEl.className = 'badge badge-apex';
+                badgeEl.innerHTML = '👑 APEX';
+            } else if (inventory.includes('badge_alpha')) {
+                badgeEl.className = 'badge badge-alpha';
+                badgeEl.innerHTML = '🐺 ALPHA';
+            } else {
+                // Par défaut : Brebis
+                badgeEl.className = 'badge badge-sheep';
+                badgeEl.innerHTML = '🐑 BREBIS';
+            }
+        }
+    </script>
+
+</body>
 </html>
