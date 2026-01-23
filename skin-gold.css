@@ -1,0 +1,99 @@
+/* SKIN LUXE DORÉ (V2 - CASINO ROYAL EDITION) */
+:root {
+    --cyan: #ffd700; /* Or Jaune */
+}
+
+/* 1. FOND DE TABLE VIP (Noir profond type velours) */
+body {
+    background: radial-gradient(circle at center, #2c3e50 0%, #000000 90%) !important;
+    color: #ffd700 !important;
+}
+
+/* 2. HUD (Tout en Or) */
+.hud-label { color: #b8860b !important; letter-spacing: 1px; } /* Or foncé */
+.hud-value { color: #fff !important; text-shadow: 0 0 5px #ffd700; }
+.skin-text { color: #ffd700 !important; }
+#timer-container { color: #fff !important; }
+
+/* 3. GRILLE (Cadre de tableau de maître) */
+#game-grid {
+    background: rgba(0, 0, 0, 0.8);
+    /* Effet métallique sur la bordure */
+    border: 4px solid #b8860b; 
+    border-image: linear-gradient(to bottom right, #ffd700, #b8860b, #ffd700, #b8860b) 1;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+}
+
+/* 4. TUILES (Carte de crédit Noir & Or) */
+.tile {
+    background: #000000 !important;
+    border: 1px solid #ffd700 !important; /* Bordure fine Or */
+    
+    /* CHIFFRES EN OR (Le changement le plus important) */
+    color: #ffd700 !important; 
+    font-weight: bold !important;
+    font-family: 'Times New Roman', serif !important; /* Police plus "Classe" */
+    
+    box-shadow: inset 0 0 10px rgba(184, 134, 11, 0.2);
+    text-shadow: 0 1px 1px rgba(0,0,0,1);
+}
+
+/* Tuiles vides */
+.tile.empty {
+    background: rgba(255, 215, 0, 0.02) !important;
+    border: 1px solid rgba(255, 215, 0, 0.1) !important;
+    box-shadow: none !important;
+}
+
+/* FORCE TOUS LES CHIFFRES EN OR */
+.val-1, .val-2, .val-3, .val-4, .val-5, .val-6, .val-7, .val-8 {
+    color: #ffd700 !important;
+    text-shadow: 0 0 2px #b8860b;
+}
+
+/* 5. LE CHIEN (Le Médaillon) */
+.tile.nine {
+    /* Fond dégradé Or (Lingot) */
+    background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c) !important;
+    color: #000 !important;
+    
+    border: 2px solid #fff !important;
+    box-shadow: 0 0 15px #ffd700;
+    
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden !important;
+    padding: 0 !important;
+}
+
+/* L'EMOJI */
+.tile.nine::before {
+    content: '🐶'; 
+    font-size: 1.6em !important;
+    line-height: 1 !important;
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.5));
+}
+
+/* 6. BOUTONS DORÉS */
+.btn-circle {
+    background: linear-gradient(to bottom, #ffd700, #b8860b) !important;
+    color: #000 !important;
+    border: 1px solid #fff !important;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+.top-bar h1 {
+    background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none !important;
+    filter: drop-shadow(0 2px 0 #000);
+}
+
+/* Badge Nom du chien */
+.dog-id-badge {
+    background: #ffd700 !important;
+    color: #000 !important;
+    border: 1px solid #000 !important;
+}
