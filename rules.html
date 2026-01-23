@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TOPDOG - Règles</title>
+    
+    <link rel="stylesheet" href="style.css?v=FINAL">
+    <link rel="stylesheet" href="badges.css">
+    
+    <style>
+        /* OVERRIDE CRUCIAL : On écrase le style du jeu qui bloque le scroll */
+        body {
+            position: static !important; /* Annule le 'fixed' du jeu */
+            height: auto !important;     /* Annule le '100%' du jeu */
+            overflow-y: auto !important; /* Autorise le scroll vertical */
+            display: flex !important;
+            flex-direction: column; 
+            align-items: center;
+            
+            background-color: #000;
+            background-image: radial-gradient(circle at center, #111 0%, #000 80%);
+            color: #fff;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px; width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px; border-radius: 20px;
+            border: 1px solid #333;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            margin-bottom: 50px; /* Marge en bas pour être sûr qu'on peut tout lire */
+        }
+
+        h1 {
+            text-align: center; font-style: italic; font-weight: 900;
+            background: linear-gradient(45deg, #fff, #888);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 15px;
+        }
+
+        h2 {
+            color: #00f3ff; font-size: 1.2em; text-transform: uppercase;
+            letter-spacing: 2px; margin-top: 30px;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        p, li {
+            color: #ccc; line-height: 1.6; font-size: 0.95em;
+        }
+        
+        ul { padding-left: 20px; }
+        li { margin-bottom: 8px; }
+
+        /* VISUEL 4+5 */
+        .math-demo {
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+            margin: 20px 0; font-size: 1.5em; font-weight: bold;
+        }
+        .box {
+            width: 45px; height: 45px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid #444; background: #222;
+        }
+        .val-4 { color: #ff00ff; border-color: #ff00ff; box-shadow: 0 0 10px rgba(255,0,255,0.2); }
+        .val-5 { color: #2ecc71; border-color: #2ecc71; box-shadow: 0 0 10px rgba(46,204,113,0.2); }
+
+        /* TABLEAU DES BADGES */
+        .badge-row {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(0,0,0,0.3); padding: 10px;
+            margin-bottom: 8px; border-radius: 8px; border: 1px solid #222;
+        }
+        .badge-desc { font-size: 0.8em; color: #888; text-align: right; }
+
+        /* BOUTON RETOUR */
+        .btn-back {
+            display: block; width: 100%; padding: 15px 0; margin-top: 40px;
+            background: #fff; color: #000; text-align: center;
+            text-decoration: none; font-weight: 900; border-radius: 50px;
+            text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(255,255,255,0.2);
+            transition: transform 0.1s;
+        }
+        .btn-back:active { transform: scale(0.95); }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>GUIDE OFFICIEL</h1>
+
+        <div style="text-align:center; font-style:italic; color:#666; margin-bottom:20px;">
+            "La chance favorise l'esprit préparé."
+        </div>
+
+        <h2>🎯 LE CONCEPT</h2>
+        <p>
+            TOPDOG est un duel de rapidité et de calcul.
+            Votre mission : <strong>Faire descendre votre Chien</strong> du haut de la grille jusqu'à la sortie en bas, avant la fin du temps (02:00).
+        </p>
+
+        <h2>🔥 LA RÈGLE D'OR</h2>
+        <p>Pour briser les blocs, additionnez deux chiffres pour faire <strong>9</strong>.</p>
+        
+        <div class="math-demo">
+            <div class="box val-4">4</div> + <div class="box val-5">5</div> = 9
+        </div>
+
+        <p><strong>Combinaisons valides :</strong></p>
+        <ul>
+            <li>4 + 5</li>
+            <li>7 + 2</li>
+            <li>6 + 3</li>
+            <li>8 + 1</li>
+        </ul>
+
+        <h2>⚡ COMMENT JOUER</h2>
+        <ol>
+            <li>Repérez l'icône de votre <strong>Chien</strong> (🐶) coincé dans la grille.</li>
+            <li>Cliquez sur deux chiffres qui font <strong>9</strong> juste en dessous de lui.</li>
+            <li><strong>BOOM !</strong> Les blocs explosent, le chien tombe.</li>
+            <li>Répétez jusqu'à ce qu'il touche le sol.</li>
+        </ol>
+
+        <h2>🛡️ LES BONUS</h2>
+        <ul>
+            <li><strong>INDICE :</strong> Vous montre une paire valide si vous êtes bloqué.</li>
+            <li><strong>BRASSER :</strong> Mélange toute la grille. À utiliser en dernier recours !</li>
+        </ul>
+
+        <h2>🏆 HIÉRARCHIE SOCIALE</h2>
+        <p>L'argent gagné sert à acheter votre rang. L'achat d'un grade est <strong>définitif</strong>.</p>
+
+        <div class="badge-row">
+            <span class="badge badge-sheep" style="margin:0">🐑 BREBIS</span>
+            <span class="badge-desc">Le troupeau (Défaut)</span>
+        </div>
+        <div class="badge-row">
+            <span class="badge badge-alpha" style="margin:0">🐺 ALPHA</span>
+            <span class="badge-desc">Le Chef (1 Milliard)</span>
+        </div>
+        <div class="badge-row">
+            <span class="badge badge-apex" style="margin:0">👑 APEX</span>
+            <span class="badge-desc">Le Roi (10 Milliards)</span>
+        </div>
+        <div class="badge-row">
+            <span class="badge badge-legend" style="margin:0">💎 LEGEND</span>
+            <span class="badge-desc">Le Mythe (100 Milliards)</span>
+        </div>
+        <div class="badge-row">
+            <span class="badge badge-goat" style="margin:0">🐐 G.O.A.T.</span>
+            <span class="badge-desc">L'Ultime (500 Milliards)</span>
+        </div>
+
+        <a href="index.html" class="btn-back">J'AI COMPRIS</a>
+    </div>
+
+</body>
+</html>
+
