@@ -12,7 +12,7 @@
 
 * { box-sizing: border-box; }
 
-/* --- MISE EN PAGE PRINCIPALE --- */
+/* 1. ARCHITECTURE GLOBALE */
 html { height: 100%; }
 
 body {
@@ -21,21 +21,18 @@ body {
     color: var(--tile-text);
     margin: 0; padding: 0;
     
-    /* HAUTEUR DYNAMIQUE MOBILE */
+    /* Hauteur stricte et dynamique (100dvh pour mobile) */
     height: 100dvh; 
-    /* Fallback */
+    /* Fallback pour vieux navigateurs */
     min-height: 100vh;
     
-    overflow: hidden; /* CRUCIAL : Pas de scroll */
-    position: relative; 
+    overflow: hidden; /* Scroll interdit */
+    position: relative;
     
-    /* FLEXBOX VERTICAL */
+    /* FLEXBOX COLONNE */
     display: flex; 
     flex-direction: column; 
-    align-items: center; /* Centre horizontalement */
-    justify-content: space-between; /* Espace vertical réparti */
-
-    /* Marges de sécurité iPhone */
+    
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
     
@@ -44,38 +41,20 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* --- ECRAN TITRE (Correction Barre Orange) --- */
-#start-screen {
-    position: absolute; top: 0; left: 0; 
-    width: 100%; height: 100%; /* Prend tout l'écran */
-    background: #050505; z-index: 9999;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
+/* 2. ÉLÉMENTS FIXES (Ne rétrécissent jamais) */
+.top-bar, #betting-board, .hud, .controls {
+    flex-shrink: 0; 
+    width: 96%; 
+    max-width: 500px;
+    margin-left: auto; 
+    margin-right: auto;
+    z-index: 10;
 }
-.logo-title {
-    font-size: 3em; font-weight: 900; font-style: italic;
-    background: linear-gradient(45deg, #fff, #888);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    margin-bottom: 20px; letter-spacing: 4px;
-    text-align: center;
-}
-.btn-start {
-    background: #e67e22; color: #fff; border: none;
-    padding: 15px 40px; font-size: 1.5em; font-weight: bold;
-    border-radius: 50px; cursor: pointer;
-    box-shadow: 0 0 20px rgba(230, 126, 34, 0.4);
-    animation: pulse 1.5s infinite;
-    /* On s'assure qu'il ne s'étire pas */
-    width: auto; max-width: 80%;
-}
-@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
 /* --- HEADER --- */
 .top-bar {
-    width: 96%; max-width: 500px;
     display: flex; justify-content: space-between; align-items: center;
     padding: 10px 0 5px 0;
-    flex-shrink: 0; /* Ne rétrécit jamais */
-    z-index: 10;
 }
 h1 { 
     margin: 0; font-style: italic; color: #fff; 
@@ -92,15 +71,13 @@ h1 {
 
 /* --- HUD --- */
 #betting-board {
-    width: 96%; max-width: 500px;
     display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;
-    margin: 0 auto 5px auto; flex-shrink: 0;
+    margin-bottom: 5px;
 }
 .bet-card {
     display: flex; justify-content: space-between; align-items: center;
     background: #0f0f0f; padding: 4px 8px; border-radius: 6px;
-    border: 1px solid #333; border-left: 3px solid #444;
-    font-size: 12px;
+    border: 1px solid #333; border-left: 3px solid #444; font-size: 12px;
 }
 .bet-card.winner { border-color: #2ecc71; background: #0b2210; }
 .bet-card.loser { opacity: 0.3; filter: grayscale(100%); }
@@ -113,51 +90,59 @@ h1 {
 .bet-amount { color: #2ecc71; font-family: monospace; font-weight: bold; }
 
 .hud { 
-    display: flex; width: 96%; max-width: 500px; justify-content: space-between;
+    display: flex; justify-content: space-between;
     background: #111; padding: 5px 15px; border-radius: 50px; border: 1px solid #222;
-    margin: 0 auto 5px auto; flex-shrink: 0;
+    margin-bottom: 5px;
 }
 .hud-item { display: flex; flex-direction: column; align-items: center; }
 .hud-label { font-size: 0.6em; color: #666; letter-spacing: 1px; }
 .hud-value { font-size: 1.1em; font-weight: bold; color: #fff; font-family: monospace; }
 .hud-value.highlight { color: #f1c40f; }
 
-/* --- JEU (ZONE FLEXIBLE - LA CORRECTION EST ICI) --- */
+/* 3. ZONE DE JEU (ÉLÉMENT FLEXIBLE RELATIF) */
 .game-container {
-    flex-grow: 1; /* Prend tout l'espace disponible */
-    min-height: 0; /* Permet de réduire si l'écran est petit */
+    flex-grow: 1; /* Prend l'espace restant */
+    min-height: 0; /* IMPORTANT : Permet de rétrécir */
     display: flex; align-items: center; justify-content: center;
-    width: 100%; position: relative; overflow: hidden; padding: 0;
+    width: 100%; position: relative; padding: 5px;
 }
 
 #game-grid {
-    display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); gap: 3px;
+    display: grid; 
+    grid-template-columns: repeat(8, 1fr); 
+    grid-template-rows: repeat(8, 1fr); 
+    gap: 3px;
+    
     background: #000; padding: 4px; border-radius: 12px; border: 2px solid #333;
-    
-    /* MAGIE RESPONSIVE : */
-    width: auto;
-    height: auto;
-    
-    /* Ne dépasse jamais 95% de la largeur, NI 96% de la HAUTEUR disponible */
-    max-width: 95%; 
-    max-height: 96%; 
-    
-    /* Reste toujours carré */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+
+    /* --- LOGIQUE DE TAILLE (CORRECTION MOBILE) --- */
+    /* 1. Essaie de remplir le conteneur */
+    width: 100%;
+    height: 100%;
+
+    /* 2. Mais ne dépasse jamais les limites */
+    max-width: 100%;
+    max-height: 100%;
+
+    /* 3. Et reste CARRÉ (c'est ça qui va empêcher le débordement) */
     aspect-ratio: 1 / 1;
     
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    /* 4. Centrage */
+    margin: auto;
 }
 
 /* --- TUILES --- */
 .tile {
     width: 100%; height: 100%; background-color: var(--tile-bg);
     display: flex; align-items: center; justify-content: center;
-    /* Police adaptative à la taille de la grille (container query simulé) */
-    font-size: clamp(12px, 3.5vh, 26px);
+    font-size: clamp(10px, 4cqi, 26px); /* Police intelligente */
+    font-size: clamp(10px, 3.5vh, 26px); /* Fallback */
     font-weight: 800; border-radius: 4px;
     position: relative; transition: transform 0.1s;
     border-bottom: 2px solid rgba(0,0,0,0.3); cursor: pointer;
 }
+/* Couleurs */
 .val-1 { color: var(--c1); border: 1px solid rgba(0, 243, 255, 0.3); background: rgba(0, 243, 255, 0.05); }
 .val-2 { color: var(--c2); border: 1px solid rgba(41, 128, 185, 0.3); background: rgba(41, 128, 185, 0.05); }
 .val-3 { color: var(--c3); border: 1px solid rgba(155, 89, 182, 0.3); background: rgba(155, 89, 182, 0.05); }
@@ -173,24 +158,57 @@ h1 {
 .anim-match { animation: flash 0.2s forwards; background: #fff !important; }
 @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.5; transform: scale(1.1); } 100% { opacity: 0; } }
 
-/* --- CONTROLES (TOUJOURS VISIBLES) --- */
+/* 4. CONTRÔLES (CORRIGÉS) */
 .controls { 
-    display: flex; gap: 8px; width: 96%; max-width: 500px;
-    margin: 0 auto;
-    padding-bottom: max(10px, env(safe-area-inset-bottom)); /* Sécurité iPhone */
+    display: flex; gap: 8px; 
+    padding-bottom: max(10px, env(safe-area-inset-bottom)); 
     padding-top: 5px;
-    flex-shrink: 0; /* IMPORTANT : Interdit de rétrécir */
 }
+
+/* Style de base des boutons (SANS FLEX 1) */
 button { 
-    flex: 1; padding: 12px 0; border: none; border-radius: 8px;
+    padding: 12px 0; border: none; border-radius: 8px;
     font-weight: bold; font-size: clamp(12px, 3.5vw, 16px);
     text-transform: uppercase; cursor: pointer; transition: 0.1s;
     box-shadow: 0 4px 0 rgba(0,0,0,0.5);
 }
 button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.5); }
+
+/* --- C'EST ICI LA CORRECTION : SEULS LES BOUTONS DE CONTRÔLE S'ÉTIRENT --- */
+.controls button {
+    flex: 1;
+}
+
 #btn-hint { color: var(--c1); background: #0a1f20; }
 #btn-shuffle { color: var(--c6); background: #1f1d0a; }
 #btn-reset { color: #fff; background: #222; }
+
+/* ECRAN TITRE (BOUTON JOUER CORRIGÉ) */
+#start-screen {
+    position: absolute; top: 0; left: 0; 
+    width: 100%; height: 100%; 
+    background: #050505; z-index: 9999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.logo-title {
+    font-size: 3em; font-weight: 900; font-style: italic;
+    background: linear-gradient(45deg, #fff, #888);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 20px; letter-spacing: 4px; text-align: center;
+}
+.btn-start {
+    /* Style Spécifique JOUER */
+    background: #e67e22; color: #fff; border: none;
+    padding: 15px 40px; font-size: 1.5em; font-weight: bold;
+    border-radius: 50px; cursor: pointer;
+    box-shadow: 0 0 20px rgba(230, 126, 34, 0.4);
+    animation: pulse 1.5s infinite;
+    
+    /* SECURITE ANTI-ETIREMENT */
+    flex: 0 0 auto; 
+    width: auto; max-width: 80%;
+}
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
 /* OVERLAYS */
 #message-overlay {
