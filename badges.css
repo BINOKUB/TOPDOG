@@ -1,0 +1,88 @@
+/* --- BADGES.CSS --- */
+/* Styles exclusifs pour les Badges de Prestige */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px; /* Petit et discret mais lisible */
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-left: 10px; /* La distance de 4 caractères environ */
+    vertical-align: middle;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: transform 0.2s;
+    cursor: default;
+}
+
+.badge:hover {
+    transform: scale(1.1);
+}
+
+/* NIVEAU 0 : BREBIS (Défaut) */
+/* Terne, sombre, un peu "honteux" */
+.badge-sheep {
+    background: #222;
+    color: #555;
+    border-color: #333;
+}
+
+/* NIVEAU 1 : ALPHA (1G$) */
+/* Acier brossé, froid, sérieux */
+.badge-alpha {
+    background: linear-gradient(135deg, #bdc3c7, #2c3e50);
+    color: #fff;
+    border: 1px solid #7f8c8d;
+    box-shadow: 0 0 5px rgba(189, 195, 199, 0.5);
+    text-shadow: 0 1px 2px #000;
+}
+
+/* NIVEAU 2 : APEX (10G$) */
+/* Or massif, luxueux */
+.badge-apex {
+    background: linear-gradient(135deg, #f1c40f, #e67e22, #f1c40f);
+    color: #000;
+    border: 1px solid #f39c12;
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.6);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+}
+
+/* NIVEAU 3 : LEGEND (100G$) */
+/* Diamant / Holographique, pur */
+.badge-legend {
+    background: linear-gradient(135deg, #00f3ff, #fff, #00f3ff);
+    color: #000;
+    border: 1px solid #fff;
+    box-shadow: 0 0 15px #00f3ff;
+    animation: sparkle 3s infinite;
+}
+
+/* NIVEAU 4 : G.O.A.T. (500G$) */
+/* Plasma instable, Feu, Puissance ultime */
+.badge-goat {
+    background: linear-gradient(45deg, #ff00ff, #ff0000, #ff00ff);
+    background-size: 200% 200%;
+    color: #fff;
+    border: 1px solid #ff00ff;
+    box-shadow: 0 0 20px #ff0000;
+    animation: burn 1.5s infinite linear;
+    text-shadow: 0 0 5px #000;
+}
+
+/* --- ANIMATIONS --- */
+@keyframes sparkle {
+    0% { opacity: 0.8; box-shadow: 0 0 15px #00f3ff; }
+    50% { opacity: 1; box-shadow: 0 0 25px #fff; }
+    100% { opacity: 0.8; box-shadow: 0 0 15px #00f3ff; }
+}
+
+@keyframes burn {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
