@@ -1,6 +1,6 @@
 /* =========================================
-   TOPDOG UI ENGINE V25
-   FEATURES: CASH OUT BUTTON (PSYCHOLOGY UPDATE)
+   TOPDOG UI ENGINE V27
+   FEATURES: AUTO-PAYOUT & CLEAN UI
    ========================================= */
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -14,6 +14,8 @@ let isMuted = localStorage.getItem('topdog_muted') === 'true';
 
 /* --- FORMATTER D'ARGENT --- */
 function formatMoney(num) {
+    if (!num) return "0"; 
+    if (num >= 1000000000) return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + 'G'; // Ajout des Milliards (G)
     if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
     return num;
@@ -68,14 +70,6 @@ const SoundFX = {
         osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, t); osc.frequency.linearRampToValueAtTime(50, t + 1);
         gain.gain.setValueAtTime(0.2, t); gain.gain.linearRampToValueAtTime(0, t + 1);
         osc.start(t); osc.stop(t + 1);
-    },
-    cashout: () => {
-        if(isMuted) return;
-        resumeAudio();
-        // Son de caisse enregistreuse "Cha-Ching"
-        const t = audioCtx.currentTime;
-        playNote(1200, 'square', 0.1, t);
-        playNote(1600, 'square', 0.3, t + 0.1);
     }
 };
 
@@ -127,38 +121,40 @@ document.getElementById('btn-shuffle').onclick = () => {
     }
 };
 
+/* --- FONCTION DE DÉMARRAGE BLINDÉE --- */
 function startGame() {
+    console.log("🔄 REDÉMARRAGE DU JEU...");
+
+    // 1. ON VA CHERCHER L'ARGENT SUR LE DISQUE
+    let disqueArgent = localStorage.getItem('topdog_wallet');
+    let vraieArgent = disqueArgent ? parseInt(disqueArgent) : 0;
+    
+    // 2. ON LANCE LE MOTEUR
     initGameEngine();
+    
+    // 3. ON FORCE LE MOTEUR À PRENDRE LA VRAIE VALEUR
+    if(typeof gameState !== 'undefined') {
+        gameState.bankroll = vraieArgent;
+    }
+
+    // 4. ON MET À JOUR L'AFFICHAGE
+    updateHUD(); 
+
+    // 5. LE RESTE DU DÉMARRAGE
     renderBettingBoard();
-    updateHUD();
     renderGrid();
     startTimer();
     hideMessage();
     updateMuteIcon();
-    document.getElementById('btn-shuffle').style.opacity = 1;
-    document.getElementById('shuffle-count').innerText = 1;
-    isProcessing = false; selectedTile = null;
-}
-
-/* --- LE CASH OUT (NOUVEAU V25) --- */
-function cashOut() {
-    let oldAmount = gameState.bankroll;
-    if (oldAmount <= 0) return;
-
-    SoundFX.cashout();
     
-    // Reset Banque
-    gameState.bankroll = 0;
-    saveBankroll(0); // Sauvegarde à 0
-    updateHUD();
-
-    // Feedback visuel immédiat
-    showMessage(
-        "ENCAISSÉ !",
-        `<div style="color:#f1c40f; font-size:1.2em; margin-bottom:10px;">Vous avez sécurisé</div>
-         <h1 style="color:#fff; font-size:3em; margin:0;">$${formatMoney(oldAmount)}</h1>
-         <div style="color:#ccc; font-size:0.9em; margin-top:15px;">La banque est remise à zéro.<br>Prêt pour un nouveau départ ?</div>`
-    );
+    let btnShuffle = document.getElementById('btn-shuffle');
+    if(btnShuffle) {
+        btnShuffle.style.opacity = 1;
+        document.getElementById('shuffle-count').innerText = 1;
+    }
+    
+    isProcessing = false; 
+    selectedTile = null;
 }
 
 function renderBettingBoard() {
@@ -177,7 +173,13 @@ function renderBettingBoard() {
 }
 
 function updateHUD() {
-    document.getElementById('score-display').innerText = formatMoney(gameState.bankroll);
+    const scoreEl = document.getElementById('score-display');
+    if(scoreEl) {
+        scoreEl.innerText = formatMoney(gameState.bankroll);
+        scoreEl.style.transition = "color 0.3s";
+        scoreEl.style.color = "#fff";
+    }
+    
     const reserveEl = document.getElementById('reserve-count');
     reserveEl.innerHTML = "&infin;"; 
     reserveEl.style.color = '#00f3ff';
@@ -283,30 +285,37 @@ function handleWin(dogId) {
     fireConfetti();
 
     let dog = gameState.dogs.find(d => d.id === dogId);
-    let winAmount = dog.bet * 10;
     
-    // 1. On met à jour la banque
-    gameState.bankroll += winAmount;
-    saveBankroll(gameState.bankroll);
+    // CALCUL DU GAIN TOTAL (10x la mise)
+    // Le gain est automatiquement ajouté à la bankroll
+    let bonusAmount = dog.bet * 9; 
+    let totalWin = dog.bet * 10;
+
+    gameState.bankroll += bonusAmount;
     
-    // 2. CORRECTIF ICI : On met à jour l'affichage du fond (HUD) TOUT DE SUITE
+    // SAUVEGARDE AUTOMATIQUE
+    if(typeof saveWallet === 'function') {
+        saveWallet(gameState.bankroll);
+    } else {
+        localStorage.setItem('topdog_wallet', gameState.bankroll);
+    }
+    
     updateHUD(); 
     
     document.getElementById(`bet-dog-${dogId}`).classList.add('winner');
     
-    // 3. Ensuite on affiche le message
+    // AFFICHER LE MESSAGE (Sans bouton Encaisser)
     showMessage(
         "VICTOIRE !", 
         `<div style="font-size:1.5em; color:#fff; margin-bottom:5px;">${dog.name}</div>
-         <div style="color:#2ecc71; font-family:'Courier New'; margin-bottom:10px;">GAIN: +$${formatMoney(winAmount)}</div>
+         <div style="color:#2ecc71; font-family:'Courier New'; margin-bottom:10px;">GAIN: +$${formatMoney(totalWin)}</div>
          <div style="color:#ccc; font-size:0.8em; margin-top:10px;">BANQUE TOTALE</div>
          <h1 style="color:#f1c40f; font-size:2.5em; margin:5px 0;">$${formatMoney(gameState.bankroll)}</h1>`
     );
 }
 
-/* --- SYSTÈME D'INDICE STRATÉGIQUE (SMART HINT) --- */
+/* --- SYSTÈME D'INDICE --- */
 function showHint() {
-    // 1. On repère où sont les chiens
     let dogCols = [];
     let dogsPositions = [];
     for(let r=0; r<8; r++) {
@@ -319,15 +328,10 @@ function showHint() {
     }
 
     let possibleMoves = [];
-
-    // 2. On scanne TOUS les coups possibles sur le plateau
-    // On regarde chaque case et ses voisins (Droite et Bas suffisent pour ne pas faire de doublons)
     for(let r=0; r<8; r++) {
         for(let c=0; c<8; c++) {
             let cell = gameState.grid[r][c];
             if(cell.val === 0 || cell.val === 9) continue;
-
-            // Vérif Voisin DROITE
             if(c < 7) {
                 let neighbor = gameState.grid[r][c+1];
                 if(neighbor.val !== 0 && neighbor.val !== 9) {
@@ -336,7 +340,6 @@ function showHint() {
                     }
                 }
             }
-            // Vérif Voisin BAS
             if(r < 7) {
                 let neighbor = gameState.grid[r+1][c];
                 if(neighbor.val !== 0 && neighbor.val !== 9) {
@@ -349,46 +352,33 @@ function showHint() {
     }
 
     if(possibleMoves.length === 0) {
-        // Aucun coup possible ? On fait clignoter le bouton en rouge
         let btn = document.getElementById('btn-hint');
         btn.style.background = 'red';
         setTimeout(() => btn.style.background = '', 500);
         return;
     }
 
-    // 3. LE CERVEAU : On donne un score à chaque coup
     possibleMoves.forEach(move => {
-        // Bonus si c'est dans la colonne d'un chien
         if(dogCols.includes(move.c1) || dogCols.includes(move.c2)) {
             move.score += 50;
         }
-
-        // SUPER BONUS : Si c'est le bloc juste SOUS un chien (Le Bloqueur)
         dogsPositions.forEach(dog => {
-            // Si le chien est juste au-dessus de la case 1
             if(dog.c === move.c1 && dog.r === move.r1 - 1) move.score += 1000;
-            // Si le chien est juste au-dessus de la case 2
             if(dog.c === move.c2 && dog.r === move.r2 - 1) move.score += 1000;
         });
-        
-        // Petit bonus pour les coups plus bas (souvent plus stratégiques pour faire tomber)
         move.score += move.r1; 
     });
 
-    // 4. On trie pour avoir le meilleur score en premier
     possibleMoves.sort((a, b) => b.score - a.score);
     let bestMove = possibleMoves[0];
 
-    // 5. ANIMATION VISUELLE
     let t1 = document.querySelector(`.tile[data-r="${bestMove.r1}"][data-c="${bestMove.c1}"]`);
     let t2 = document.querySelector(`.tile[data-r="${bestMove.r2}"][data-c="${bestMove.c2}"]`);
 
     if(t1 && t2) {
-        SoundFX.click(); // Petit son pour confirmer
+        SoundFX.click(); 
         t1.classList.add('hint-flash');
         t2.classList.add('hint-flash');
-
-        // On enlève l'effet après 1 seconde
         setTimeout(() => {
             t1.classList.remove('hint-flash');
             t2.classList.remove('hint-flash');
@@ -396,29 +386,21 @@ function showHint() {
     }
 }
 
-/* --- LE MESSAGE BOX DYNAMIQUE (Modifié V25) --- */
+/* --- LE MESSAGE BOX CLEAN (SANS ENCAISSER) --- */
 function showMessage(title, content) {
     const overlay = document.getElementById('message-overlay');
     overlay.style.display = 'flex';
     
-    // Bouton de base
-    let buttonsHtml = `<button onclick="startGame()" style="margin-top:20px; background:#2ecc71; color:#000; font-size:1.2em; padding:15px 30px; border:none; border-radius:50px; font-weight:bold; cursor:pointer;">CONTINUER</button>`;
+    // ON A RETIRÉ LA LOGIQUE "ENCAISSER" ICI
+    // Il ne reste que le bouton REJOUER (qui relance startGame)
+    let buttonsHtml = `
+        <button onclick="startGame()" style="margin-top:20px; background:#2ecc71; color:#000; font-size:1.2em; padding:15px 30px; border:none; border-radius:50px; font-weight:bold; cursor:pointer; box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);">
+            REJOUER
+        </button>`;
     
-    // Bouton CASH OUT (Seulement si argent > 0 et qu'on n'est pas déjà dans le message "Encaissé")
-    // On vérifie le titre pour ne pas mettre le bouton "Encaisser" dans le message de confirmation "Encaissé !"
-    if (gameState.bankroll > 0 && title !== "ENCAISSÉ !") {
-        buttonsHtml += `
-            <div style="margin-top:15px;">
-                <button onclick="cashOut()" style="background:transparent; border:2px solid #e74c3c; color:#e74c3c; font-size:0.9em; padding:10px 20px; border-radius:50px; font-weight:bold; cursor:pointer; opacity:0.8;">
-                    ENCAISSER $${formatMoney(gameState.bankroll)}
-                </button>
-            </div>
-        `;
-    }
-
     overlay.innerHTML = `
-        <h2 style="color:#fff; letter-spacing:3px;">${title}</h2>
-        <div style="color:#ccc; line-height:1.5;">${content}</div>
+        <h2 style="color:#fff; letter-spacing:3px; margin-bottom:20px;">${title}</h2>
+        <div style="color:#ccc; line-height:1.5; font-size:1.2em;">${content}</div>
         ${buttonsHtml}
     `;
 }
@@ -440,4 +422,8 @@ function startTimer() {
     }, 1000);
 }
 
-startGame();
+// Initialise si le DOM est prêt
+if(document.readyState === 'complete') {
+    // startGame() est appelé par topdog.html via launchApp()
+}
+
