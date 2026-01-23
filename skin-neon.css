@@ -1,0 +1,78 @@
+/* MODE NÉON (V4 - DOG FACE FIX + LISIBILITÉ) */
+:root {
+    --cyan: #ff00ff; 
+}
+
+body {
+    background: linear-gradient(135deg, #1a0b2e, #4a148c) !important;
+    color: #fff !important;
+}
+
+.skin-text { 
+    color: #ff00ff !important; 
+    text-shadow: 0 0 10px #ff00ff; 
+}
+
+#game-grid { 
+    box-shadow: 0 0 40px rgba(255, 0, 255, 0.3); 
+    border: 2px solid rgba(255, 0, 255, 0.5);
+    background: rgba(0, 0, 0, 0.6); 
+}
+
+/* --- LES TUILES CHIFFRES (LISIBILITÉ MAX) --- */
+.tile { 
+    background: rgba(230, 230, 250, 0.95) !important; /* Blanc quasi opaque */
+    border: 2px solid #ff00ff !important;
+    
+    /* LE SECRET DE LA LISIBILITÉ : NOIR TOTAL */
+    color: #000000 !important; 
+    font-weight: 900 !important;
+    font-family: 'Segoe UI', sans-serif !important;
+    
+    box-shadow: 0 0 10px rgba(255, 0, 255, 0.2);
+    text-shadow: none !important;
+}
+
+/* Tuiles vides (transparentes) */
+.tile.empty {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 0, 255, 0.1) !important;
+    box-shadow: none !important;
+}
+
+/* Force TOUS les chiffres en noir */
+.val-1, .val-2, .val-3, .val-4, .val-5, .val-6, .val-7, .val-8 {
+    color: #000000 !important;
+}
+
+/* --- LE CHIEN (LA CORRECTION V2 - TAILLE MAÎTRISÉE) --- */
+.tile.nine {
+    background: #ff00ff !important; /* Fond Rose */
+    color: #fff !important;
+    box-shadow: 0 0 20px #ff00ff;
+    
+    /* On s'assure que le contenu est parfaitement centré */
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    
+    /* SÉCURITÉ : On empêche la case de grandir */
+    overflow: hidden !important;
+    padding: 0 !important;
+}
+
+/* ICI : ON AJOUTE LA FACE DU CHIEN MANUELLEMENT */
+.tile.nine::before {
+    content: '🐶';  /* L'émoji chien */
+    
+    /* ON RÉDUIT LA TAILLE POUR QU'IL RENTRE */
+    font-size: 1.6em !important; /* Au lieu de 2em */
+    line-height: 1 !important;   /* Pour éviter les espaces verticaux */
+    
+    filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+}
+
+/* --- UI --- */
+.btn-circle { border-color: #ff00ff !important; color: #ff00ff !important; background: rgba(0,0,0,0.5); }
+.top-bar h1 { text-shadow: 0 0 15px #ff00ff; color: #fff !important; }
+
