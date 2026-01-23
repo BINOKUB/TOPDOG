@@ -2,229 +2,222 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>TOPDOG</title>
-    
-    <link rel="manifest" href="./manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TOPDOG - L'Élite</title>
     
     <link rel="stylesheet" href="style.css?v=FINAL">
-    <link rel="stylesheet" href="badges.css"> 
-    <link id="skin-stylesheet" rel="stylesheet" href="">
-    
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="badges.css">
     
     <style>
-        /* --- LAYOUT FLEXIBLE (SOUPLE) --- */
-        html, body {
-            height: 100%; /* Fallback */
-            height: 100dvh; /* Dynamic Height: s'adapte aux barres du navigateur mobile */
-            margin: 0; padding: 0;
-            overflow: hidden; /* Empêche le scroll global */
+        body {
+            background-color: #000;
+            background-image: radial-gradient(circle at 50% 30%, #1a1a1a 0%, #000 70%);
+            display: flex; flex-direction: column; 
+            align-items: center; justify-content: center;
+            min-height: 100vh; margin: 0; font-family: 'Segoe UI', Roboto, sans-serif;
         }
 
-        body { 
-            overscroll-behavior: none; 
-            -webkit-user-select: none; user-select: none; 
-            -webkit-tap-highlight-color: transparent; 
-            background: #000;
-            transition: background 0.5s ease;
-
-            /* C'EST ICI QUE LA MAGIE OPÈRE : FLEXBOX VERTICAL */
-            display: flex; 
-            flex-direction: column; 
-            justify-content: space-between; /* Écarte les éléments au max */
-        }
-
-        /* 1. ÉCRAN TITRE */
-        #start-screen {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: #050505; z-index: 999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .logo-title {
-            font-size: 3em; font-weight: 900; font-style: italic;
-            background: linear-gradient(45deg, #fff, #888);
+        /* --- TITRE --- */
+        .main-title {
+            font-size: 3.5em; font-weight: 900; font-style: italic;
+            color: #ccc; margin: 0; line-height: 1;
+            text-shadow: 0 5px 15px rgba(0,0,0,0.8);
+            background: linear-gradient(180deg, #fff 0%, #666 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            margin-bottom: 20px; letter-spacing: 4px;
         }
-        .btn-start {
-            background: #e67e22; color: #fff; border: none;
-            padding: 15px 40px; font-size: 1.5em; font-weight: bold;
-            border-radius: 50px; cursor: pointer;
-            box-shadow: 0 0 20px rgba(230, 126, 34, 0.4);
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-
-        /* 2. ENTÊTE (Reste fixe en haut) */
-        .top-bar {
-            flex-shrink: 0; /* Ne jamais rétrécir l'entête */
+        .subtitle {
+            color: #00f3ff; font-weight: bold; letter-spacing: 3px;
+            font-size: 0.9em; text-transform: uppercase;
+            margin-bottom: 30px; text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
         }
 
-        /* 3. HUD (Reste fixe sous l'entête) */
-        .hud {
-            flex-shrink: 0;
-        }
-
-        /* 4. CONTENEUR DE JEU (LE CŒUR SOUPLE) */
-        .game-container {
-            flex-grow: 1; /* Prend TOUT l'espace disponible au milieu */
-            display: flex; 
-            align-items: center; /* Centre verticalement */
-            justify-content: center; /* Centre horizontalement */
-            min-height: 0; /* Important pour que Flexbox accepte de rétrécir le contenu */
+        /* --- CARTE PRINCIPALE --- */
+        .vip-card {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 20px;
+            padding: 20px;
+            width: 90%; max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             position: relative;
-            width: 100%;
         }
+
+        /* --- BARRE DE STATUT (MISE A JOUR) --- */
+        .status-bar {
+            background: #111; border-radius: 10px;
+            padding: 10px 15px; margin-bottom: 25px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid #222; font-family: monospace;
+        }
+        /* On retire l'ancien style .rank car le badge gère ses couleurs */
+        .money { color: #2ecc71; font-weight: bold; letter-spacing: 1px; }
+
+        /* --- VISUEL RÈGLE D'OR --- */
+        .rule-title { color: #00f3ff; font-size: 0.8em; margin-bottom: 10px; letter-spacing: 1px; }
+        .math-visual {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            margin-bottom: 20px; font-size: 1.5em; font-weight: bold; color: #fff;
+        }
+        .box {
+            width: 40px; height: 40px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid #333; background: #151515;
+        }
+        .box.pink { color: #ff00ff; border-color: #ff00ff; box-shadow: 0 0 10px rgba(255,0,255,0.2); }
+        .box.green { color: #2ecc71; border-color: #2ecc71; box-shadow: 0 0 10px rgba(46,204,113,0.2); }
+        .divider { width: 50%; height: 1px; background: #333; margin: 20px auto; }
+
+        /* --- DESCRIPTION --- */
+        .desc-text { color: #888; font-size: 0.9em; line-height: 1.4; margin-bottom: 20px; }
+        .tags { color: #fff; font-weight: bold; font-size: 0.9em; margin-bottom: 30px; }
+
+        /* --- BOUTONS --- */
+        .btn {
+            display: block; width: 100%; padding: 15px 0;
+            border-radius: 50px; text-decoration: none;
+            font-weight: 900; text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 15px; transition: transform 0.1s; cursor: pointer;
+        }
+        .btn:active { transform: scale(0.98); }
+
+        /* 1. LANCER (Orange) */
+        .btn-play {
+            background: linear-gradient(180deg, #e67e22, #d35400);
+            color: #fff; border: none;
+            box-shadow: 0 5px 20px rgba(230, 126, 34, 0.3);
+            font-size: 1.2em;
+        }
+
+        /* 2. DÉMO (Nouveau - Style Néon Bleu) */
+        .btn-demo {
+            background: transparent;
+            border: 2px solid #00f3ff;
+            color: #00f3ff;
+            font-size: 1em;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.1);
+        }
+        .btn-demo:hover { background: rgba(0, 243, 255, 0.1); }
+
+        /* 3. BOUTIQUE (Style Outline Cyan/Gris) */
+        .btn-shop {
+            background: transparent;
+            border: 1px solid #00f3ff;
+            color: #00f3ff;
+            font-size: 0.9em;
+            opacity: 0.8;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+
+        .version {
+            position: absolute; bottom: 10px; width: 100%; text-align: center;
+            color: #333; font-size: 0.6em; font-family: monospace;
+        }
+
+        /* Bouton Règles (Style Blanc/Gris Sobre) */
+.btn-read {
+    background: transparent;
+    border: 1px solid #fff;
+    color: #fff;
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+.btn-read:hover { background: rgba(255,255,255,0.1); }
         
-        /* La grille elle-même */
-        #game-grid {
-            /* Assure que la grille ne déborde jamais du conteneur flexible */
-            max-height: 100%; 
-            max-width: 100%;
-            transition: transform 0.3s ease;
-        }
-
-        /* 5. CONTRÔLES (Reste fixe en bas) */
-        .controls {
-            flex-shrink: 0; /* Ne jamais écraser les boutons */
-            padding-bottom: env(safe-area-inset-bottom, 20px); /* Respecte la barre iPhone */
-            margin-top: 0; /* Enlève la marge forcée du CSS original */
-            padding-top: 10px;
-            padding-bottom: 15px;
-            background: rgba(0,0,0,0.5); /* Léger fond pour lisibilité si superposition */
-        }
-
-        /* --- MEDIA QUERIES (ADAPTATION INTELLIGENTE) --- */
-        
-        /* Si l'écran est petit en hauteur (ex: mobile paysage ou petit téléphone) */
-        @media (max-height: 750px) {
-            .logo-title { font-size: 2em; }
-            
-            /* On réduit un peu les marges */
-            .top-bar { padding: 5px 10px; }
-            .top-bar h1 { font-size: 1.5em; margin: 0; }
-            
-            .hud { padding: 5px; margin: 5px 0; }
-            .hud-item { font-size: 0.8em; }
-            
-            /* On dézoome légèrement la grille pour qu'elle respire */
-            .game-container {
-                transform: scale(0.95); 
-            }
-            
-            .controls button {
-                padding: 10px 20px;
-                font-size: 0.9em;
-            }
-        }
-
-        /* Si l'écran est vraiment très petit (iPhone SE, vieux Android) */
-        @media (max-height: 600px) {
-            .game-container { transform: scale(0.85); }
-        }
     </style>
 </head>
 <body>
 
-    <div id="start-screen">
-        <div class="logo-title">TOPDOG</div>
-        <div style="color:#666; margin-bottom:30px; font-family:monospace;">V1.0 - GOLD EDITION</div>
-        <button class="btn-start" onclick="launchApp()">JOUER</button>
-    </div>
+    <h1 class="main-title">TOPDOG</h1>
+    <div class="subtitle">L'ÉLITE DU PARI STRATÉGIQUE</div>
 
-    <div class="top-bar">
-        <div style="display: flex; align-items: center;">
-            <h1>TOPDOG</h1>
-            <span id="player-badge" class="badge badge-sheep">🐑 BREBIS</span>
-        </div>
-
-        <div class="header-buttons">
-            <button class="btn-circle" onclick="window.location.href='store.html'" style="font-size:1.2em;">🛍️</button>
-            <button class="btn-circle" id="btn-sound">🔊</button>
-            <button class="btn-circle" id="btn-rules">?</button>
-        </div>
-    </div>
-
-    <div id="betting-board"></div> <div class="hud">
-        <div class="hud-item">
-            <span class="hud-label">RÉSERVE</span>
-            <span id="reserve-count" class="hud-value skin-text">&infin;</span>
-        </div>
-        <div class="hud-item">
-            <span class="hud-label">TEMPS</span>
-            <span id="timer-container" class="hud-value">02:00</span>
-        </div>
-        <div class="hud-item">
-            <span class="hud-label">BANQUE</span>
-            <span id="score-display" class="hud-value highlight">0</span>
-        </div>
-    </div>
-
-    <div class="game-container">
-        <div id="game-grid"></div>
-        <div id="message-overlay"></div>
-    </div>
-
-    <div class="controls">
-        <button id="btn-hint">INDICE</button>
-        <button id="btn-shuffle">BRASSER (<span id="shuffle-count">1</span>)</button>
-        <button id="btn-reset">RESET</button>
-    </div>
-
-    <script>
-        function launchApp() {
-            document.getElementById('start-screen').style.display = 'none';
-            if(window.audioCtx && window.audioCtx.state === 'suspended') {
-                window.audioCtx.resume();
-            }
-            if(typeof startGame === 'function') {
-                startGame();
-            }
-        }
-    </script>
-
-    <script src="catalog.js?v=FINAL"></script>
-    <script src="cosmetics.js?v=FINAL"></script>
-    <script src="logic.js?v=FINAL"></script>
-    <script src="ui.js?v=FINAL"></script>
-
-    <script>
-        window.addEventListener('load', function() {
-            console.log("🚀 Lancement du système TopDog...");
-
-            if(typeof Cosmetics !== 'undefined') {
-                Cosmetics.init();
-            } else {
-                console.error("❌ ERREUR : cosmetics.js non chargé !");
-            }
-
-            updateBadge();
-        });
-
-        function updateBadge() {
-            const badgeEl = document.getElementById('player-badge');
-            const inventory = JSON.parse(localStorage.getItem('topdog_inventory_badge') || '[]');
+    <div class="vip-card">
+        
+        <div class="status-bar">
+            <div id="badge-container">
+                <span id="rank-badge" class="badge badge-sheep" style="margin-left:0;">🐑 BREBIS</span>
+            </div>
             
-            if (inventory.includes('badge_goat')) {
-                badgeEl.className = 'badge badge-goat';
-                badgeEl.innerHTML = '🐐 G.O.A.T.';
-            } else if (inventory.includes('badge_legend')) {
-                badgeEl.className = 'badge badge-legend';
-                badgeEl.innerHTML = '💎 LEGEND';
-            } else if (inventory.includes('badge_apex')) {
-                badgeEl.className = 'badge badge-apex';
-                badgeEl.innerHTML = '👑 APEX';
-            } else if (inventory.includes('badge_alpha')) {
-                badgeEl.className = 'badge badge-alpha';
-                badgeEl.innerHTML = '🐺 ALPHA';
-            } else {
-                badgeEl.className = 'badge badge-sheep';
-                badgeEl.innerHTML = '🐑 BREBIS';
-            }
+            <div class="money" id="wallet-display">0 $</div>
+        </div>
+
+        <div class="rule-title">LA RÈGLE D'OR</div>
+        
+        <div class="math-visual">
+            <div class="box pink">4</div>
+            <span>+</span>
+            <div class="box green">5</div>
+            <span>=</span>
+            <span>9</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="desc-text">
+            Plongez dans l'arène. Misez sur vos chiens favoris et frayez-leur un chemin.
+        </div>
+        <div class="tags">Rapidité • Stratégie • Cash Out</div>
+
+        <a href="topdog.html" class="btn btn-play">LANCER LE JEU</a>
+        
+        <a href="demo.html" class="btn btn-demo">🎓 VOIR LA DÉMO</a>
+
+         <a href="rules.html" class="btn btn-read">📖 LISEZ-MOI</a>
+      
+        <a href="store.html" class="btn btn-shop">🛍️ ACCÉDER À LA BOUTIQUE</a>
+
+    </div>
+
+    <div class="version">V1.3 PRESTIGE EDITION • STUDIO CODE</div>
+
+    <script>
+        // 1. GESTION DE L'ARGENT (Formatage propre)
+        const money = parseInt(localStorage.getItem('topdog_wallet')) || 0;
+        let displayMoney = money;
+        
+        // On utilise le format court (1G, 10M) pour que ça rentre bien dans la barre
+        if (money >= 1000000000) displayMoney = (money / 1000000000).toFixed(1).replace(/\.0$/, '') + ' G';
+        else if (money >= 1000000) displayMoney = (money / 1000000).toFixed(1).replace(/\.0$/, '') + ' M';
+        else displayMoney = new Intl.NumberFormat('fr-FR').format(money);
+
+        document.getElementById('wallet-display').innerText = displayMoney + " $";
+
+        // 2. GESTION DU BADGE (Nouvelle Logique Unifiée)
+        // On lit l'inventaire au lieu de calculer selon l'argent
+        const badgeEl = document.getElementById('rank-badge');
+        const inventory = JSON.parse(localStorage.getItem('topdog_inventory_badge') || '[]');
+        
+        // Hiérarchie des badges (du plus fort au plus faible)
+        if (inventory.includes('badge_goat')) {
+            badgeEl.className = 'badge badge-goat';
+            badgeEl.innerHTML = '🐐 G.O.A.T.';
+        } else if (inventory.includes('badge_legend')) {
+            badgeEl.className = 'badge badge-legend';
+            badgeEl.innerHTML = '💎 LEGEND';
+        } else if (inventory.includes('badge_apex')) {
+            badgeEl.className = 'badge badge-apex';
+            badgeEl.innerHTML = '👑 APEX';
+        } else if (inventory.includes('badge_alpha')) {
+            badgeEl.className = 'badge badge-alpha';
+            badgeEl.innerHTML = '🐺 ALPHA';
+        } else {
+            // Statut par défaut si rien acheté
+            badgeEl.className = 'badge badge-sheep';
+            badgeEl.innerHTML = '🐑 BREBIS';
         }
+        
+        // On force le style pour l'accueil (taille et marge)
+        badgeEl.style.fontSize = "12px"; 
+        badgeEl.style.marginLeft = "0"; 
+
+        // Audio Unlock
+        document.addEventListener('click', function() {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+                const ctx = new AudioContext();
+                ctx.resume();
+            }
+        });
     </script>
 
 </body>
