@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TOPDOG - Boutique VIP</title>
+    <style>
+        body {
+            background-color: #050505; color: #fff;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            margin: 0; padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.5em; font-style: italic; margin-bottom: 5px;
+            background: linear-gradient(45deg, #ffd700, #fff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .wallet-box {
+            background: #111; padding: 10px 20px; border-radius: 50px;
+            display: inline-block; border: 1px solid #333; margin-bottom: 30px;
+            font-family: monospace; font-size: 1.5em; color: #2ecc71;
+        }
+        .section-title {
+            text-align: left; margin-top: 40px; margin-bottom: 15px;
+            font-size: 1.2em; color: #888; text-transform: uppercase; letter-spacing: 2px;
+            border-bottom: 1px solid #333; padding-bottom: 10px;
+        }
+        .store-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px;
+        }
+        .item-card {
+            background: #111; border: 1px solid #333; border-radius: 15px;
+            padding: 15px; display: flex; flex-direction: column; align-items: center;
+            transition: 0.2s; position: relative;
+        }
+        .item-preview {
+            width: 80px; height: 60px; border-radius: 10px; margin-bottom: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px; 
+            /* On retire les bordures par défaut ici pour laisser le CSS des badges faire le travail */
+        }
+        .item-name { font-weight: bold; margin-bottom: 5px; font-size: 0.9em; }
+        .item-desc { font-size: 0.7em; color: #666; margin-bottom: 10px; min-height: 30px; }
+        .item-price { color: #f1c40f; font-size: 0.9em; margin-bottom: 10px; }
+        
+        .btn-action {
+            background: #2ecc71; color: #000; border: none; padding: 8px 0;
+            width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer;
+        }
+        .btn-action.owned { background: #3498db; color: #fff; cursor: default; } /* Bleu pour possédé */
+        .btn-action.locked { background: #333; color: #555; cursor: not-allowed; }
+        .btn-equipped { background: #555; color: #fff; opacity: 0.7; cursor: default; }
+
+        .back-btn {
+            display: block; margin: 40px auto; padding: 15px 30px;
+            background: transparent; border: 1px solid #fff; color: #fff;
+            text-decoration: none; border-radius: 50px; width: 200px;
+        }
+
+        /* --- OPTIMISATION MOBILE --- */
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            h1 { font-size: 1.8em; }
+            .store-grid { grid-template-columns: 1fr 1fr !important; gap: 8px; }
+            .item-card { padding: 10px; }
+            .item-name { font-size: 0.8em; height: 2.2em; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+            .item-desc { display: none; }
+            .btn-action { font-size: 0.8em; padding: 6px 0; }
+            .wallet-box { font-size: 1.2em; padding: 8px 15px; margin-bottom: 20px; }
+        }
+    </style>
+    <link rel="stylesheet" href="badges.css">
+</head>
+<body>
+
+    <h1>BOUTIQUE VIP</h1>
+    <div class="wallet-box" id="wallet-amount">Chargement...</div>
+
+    <div class="section-title">🏆 STATUTS DE PRESTIGE (BADGES)</div>
+    <div class="store-grid" id="badge-grid"></div>
+
+    <div class="section-title">🎨 AMBIANCES VISUELLES</div>
+    <div class="store-grid" id="skin-grid"></div>
+
+    <div class="section-title">🐕 MEUTES DE COMBAT</div>
+    <div class="store-grid" id="dog-grid"></div>
+
+    <a href="index.html" class="back-btn">RETOUR À L'INDEX</a>
+
+    <script src="catalog.js?v=FINAL"></script>
+    <script>
+        // 1. Initialisation
+        const walletEl = document.getElementById('wallet-amount');
+        const skinGridEl = document.getElementById('skin-grid');
+        const dogGridEl = document.getElementById('dog-grid');
+        const badgeGridEl = document.getElementById('badge-grid'); // Nouveau
+
+        // On charge l'argent
+        function getWallet() {
+            return parseInt(localStorage.getItem('topdog_wallet')) || 0;
+        }
+
+        // On charge les inventaires
+        function getInventory(type) {
+            return JSON.parse(localStorage.getItem('topdog_inventory_' + type) || '[]');
+        }
+
+        // 2. Affichage
+        function renderStore() {
+            // Affiche l'argent formatté
+            const money = getWallet();
+            let displayMoney = money;
+            if (money >= 1000000000) displayMoney = (money / 1000000000).toFixed(1).replace(/\.0$/, '') + 'G';
+            else if (money >= 1000000) displayMoney = (money / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+            else if (money >= 1000) displayMoney = (money / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+            
+            walletEl.innerText = displayMoney + " $";
+
+            // On vide les grilles
+            skinGridEl.innerHTML = '';
+            dogGridEl.innerHTML = '';
+            badgeGridEl.innerHTML = '';
+
+            // Fusion des catalogues
+            const allItems = [
+                ...CATALOG.badges.map(i => ({...i, type: 'badge'})), // Les badges en premier dans le code (mais affichés où on veut via HTML)
+                ...CATALOG.skins.map(i => ({...i, type: 'skin'})),
+                ...CATALOG.dogs.map(i => ({...i, type: 'dog'}))
+            ];
+
+            allItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                
+                const inventory = getInventory(item.type);
+                // Si prix est 0 ou si c'est dans l'inventaire, c'est possédé
+                const isOwned = inventory.includes(item.id) || item.price === 0;
+                
+                // Gestion spécifique pour l'équipement actif
+                let isEquipped = false;
+                if(item.type !== 'badge') {
+                    // Les badges ne s'équipent pas manuellement, ils sont passifs
+                    let activeId = localStorage.getItem('topdog_active_' + (item.type === 'skin' ? 'bg' : 'dog'));
+                    if (!activeId) {
+                        activeId = (item.type === 'skin') ? 'bg_default' : 'dog_default';
+                    }
+                    isEquipped = (activeId === item.id);
+                }
+
+                // --- VISUEL ---
+                let visual = '';
+                if(item.type === 'skin') {
+                    visual = `<div class="item-preview" style="background:${item.color}; border-radius:50%; border:2px solid #555;"></div>`;
+                } else if(item.type === 'dog') {
+                    visual = `<div class="item-preview" style="background:transparent; font-size:40px;">${item.emoji}</div>`;
+                } else if(item.type === 'badge') {
+                    // Pour le badge, on utilise les classes CSS définies dans badges.css
+                    // On enlève le margin-left pour le centrer dans la carte
+                    visual = `<div class="item-preview" style="background:transparent;"><span class="badge ${item.class}" style="margin:0; font-size:12px;">${item.icon} ${item.name.replace('Statut ', '')}</span></div>`;
+                }
+
+                // --- BOUTON ---
+                let btnHtml = '';
+                
+                if (item.type === 'badge') {
+                    // Logique Spéciale Badge : On achète et c'est tout (Pas de bouton équiper)
+                    if (isOwned) {
+                        btnHtml = `<button class="btn-action owned" disabled>POSSÉDÉ</button>`;
+                    } else {
+                        const canBuy = money >= item.price;
+                        const btnClass = canBuy ? 'btn-buy' : 'btn-locked';
+                        let priceText = formatPrice(item.price);
+                        btnHtml = `<button class="btn-action ${btnClass}" onclick="buyItem('${item.type}', '${item.id}')">ACHETER ${priceText} $</button>`;
+                    }
+                } else {
+                    // Logique Standard (Skin/Dog) : Acheter -> Équiper
+                    if (isEquipped) {
+                        btnHtml = `<button class="btn-action btn-equipped" disabled>ACTIF</button>`;
+                    } else if (isOwned) {
+                        btnHtml = `<button class="btn-action btn-owned" onclick="equipItem('${item.type}', '${item.id}')">ÉQUIPER</button>`;
+                    } else {
+                        const canBuy = money >= item.price;
+                        const btnClass = canBuy ? 'btn-buy' : 'btn-locked';
+                        let priceText = formatPrice(item.price);
+                        btnHtml = `<button class="btn-action ${btnClass}" onclick="buyItem('${item.type}', '${item.id}')">ACHETER ${priceText} $</button>`;
+                    }
+                }
+
+                card.innerHTML = `
+                    ${visual}
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-desc">${item.desc}</div>
+                    ${btnHtml}
+                `;
+                
+                // Placement dans la bonne grille
+                if (item.type === 'skin') {
+                    skinGridEl.appendChild(card);
+                } else if (item.type === 'dog') {
+                    dogGridEl.appendChild(card);
+                } else {
+                    badgeGridEl.appendChild(card);
+                }
+            });
+        }
+
+        function formatPrice(price) {
+            if(price >= 1000000000) return (price/1000000000) + 'G';
+            if(price >= 1000000) return (price/1000000) + 'M';
+            return price;
+        }
+
+        // 3. ACHAT
+        window.buyItem = function(type, id) {
+            // Récupère la bonne liste
+            let list;
+            if(type === 'skin') list = CATALOG.skins;
+            else if(type === 'dog') list = CATALOG.dogs;
+            else list = CATALOG.badges;
+
+            const item = list.find(i => i.id === id);
+            const currentMoney = getWallet();
+
+            if (currentMoney >= item.price) {
+                localStorage.setItem('topdog_wallet', currentMoney - item.price);
+                let inventory = getInventory(type);
+                inventory.push(id);
+                localStorage.setItem('topdog_inventory_' + type, JSON.stringify(inventory));
+                renderStore(); 
+            } else {
+                alert("Pas assez d'argent !");
+            }
+        };
+
+        // 4. ÉQUIPEMENT (Uniquement pour Skins et Dogs)
+        window.equipItem = function(type, id) {
+            if (type === 'skin') {
+                localStorage.setItem('topdog_active_bg', id);
+            } else if (type === 'dog') {
+                localStorage.setItem('topdog_active_dog', id);
+            }
+            renderStore();
+        };
+
+        renderStore();
+    </script>
+</body>
+</html>
+
