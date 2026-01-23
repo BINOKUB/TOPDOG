@@ -1,0 +1,90 @@
+/* SKIN DIAMANT PUR (V4 - FIX HUD LISIBILITÉ) */
+:root {
+    --cyan: #00e5ff;
+}
+
+/* 1. FOND GLOBAL */
+body {
+    background: radial-gradient(circle at center, #f0faff, #d7efff, #a7cbf2) !important;
+    color: #003366 !important;
+}
+
+/* --- C'EST ICI QUE ÇA CHANGE POUR LE HUD --- */
+
+/* Les titres (TEMPS, BANQUE...) en gris clair pour ne pas voler la vedette */
+.hud-label {
+    color: #bbbbbb !important;
+    font-weight: 800 !important;
+    text-shadow: none !important;
+}
+
+/* Les VALEURS (Le Chrono, L'argent...) en BLANC CLATANT avec HALO */
+.hud-value, #timer-container, #score-display, #reserve-count {
+    color: #ffffff !important;  /* Blanc pur */
+    /* Effet de halo lumineux blanc */
+    text-shadow: 0 0 8px rgba(255, 255, 255, 1),
+                 0 0 15px rgba(255, 255, 255, 0.6) !important;
+    font-weight: 900 !important;
+}
+
+/* 3. GRILLE EN VERRE TAILLÉ */
+#game-grid {
+    background: rgba(255, 255, 255, 0.4);
+    border: 6px solid #fff;
+    box-shadow: 0 20px 50px rgba(0, 191, 255, 0.4), inset 0 0 20px #fff;
+    backdrop-filter: blur(8px);
+    border-radius: 15px;
+}
+
+/* 4. TUILES (Cristal) */
+.tile {
+    background: linear-gradient(135deg, #ffffff 0%, #e1f5fe 100%) !important;
+    border: 1px solid #fff !important;
+    /* Chiffres dans la grille en Bleu Profond pour le contraste sur fond clair */
+    color: #002f6c !important;
+    font-weight: 900 !important;
+    font-family: 'Segoe UI', sans-serif !important;
+    box-shadow: inset 2px 2px 5px rgba(255,255,255,1), 2px 2px 5px rgba(0,0,0,0.1);
+    text-shadow: none !important;
+}
+
+/* Tuiles vides */
+.tile.empty {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    box-shadow: none !important;
+}
+
+/* CHIFFRES DANS LA GRILLE */
+.val-1, .val-2, .val-3, .val-4, .val-5, .val-6, .val-7, .val-8 {
+    color: #002f6c !important;
+}
+
+/* 5. LE CHIEN (Cadre) */
+.tile.nine {
+    background: radial-gradient(circle, #80deea, #00acc1) !important;
+    border: 2px solid #fff !important;
+    box-shadow: 0 0 25px #00e5ff;
+}
+
+/* 6. BOUTONS ET TEXTES */
+.btn-circle {
+    background: #fff !important;
+    color: #00bcd4 !important;
+    border: none !important;
+    box-shadow: 0 5px 15px rgba(0,188,212, 0.3);
+}
+
+.top-bar h1 {
+    background: -webkit-linear-gradient(#00bcd4, #006064);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0px 2px 5px rgba(0,0,0,0.1);
+}
+
+.dog-badge {
+    background: #fff !important;
+    color: #00acc1 !important;
+    border: 1px solid #00acc1 !important;
+}
+
