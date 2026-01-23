@@ -2,17 +2,14 @@
     --bg-color: #050505;
     --tile-bg: #151515;
     --tile-text: #fff;
-    
-    /* PALETTE NEON */
     --c1: #00f3ff; --c2: #2980b9; --c3: #9b59b6; --c4: #ff00ff;
     --c5: #2ecc71; --c6: #f1c40f; --c7: #e67e22; --c8: #e74c3c;
-    
     --accent-dog: #ff9f43;
 }
 
 * { box-sizing: border-box; }
 
-/* 1. ARCHITECTURE GLOBALE */
+/* 1. ARCHITECTURE VERTICALE (SANDWICH) */
 html { height: 100%; }
 
 body {
@@ -21,17 +18,17 @@ body {
     color: var(--tile-text);
     margin: 0; padding: 0;
     
-    /* Hauteur stricte et dynamique (100dvh pour mobile) */
+    /* Hauteur exacte de l'écran visible */
     height: 100dvh; 
-    /* Fallback pour vieux navigateurs */
-    min-height: 100vh;
     
-    overflow: hidden; /* Scroll interdit */
-    position: relative;
+    /* Interdit formellement de dépasser/scroll */
+    overflow: hidden; 
     
-    /* FLEXBOX COLONNE */
+    /* Structure Flex Verticale */
     display: flex; 
     flex-direction: column; 
+    
+    /* On enlève 'justify-content: space-between' pour gérer nous-mêmes l'espace */
     
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
@@ -41,9 +38,9 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* 2. ÉLÉMENTS FIXES (Ne rétrécissent jamais) */
+/* 2. LES ÉLÉMENTS RIGIDES (Ne bougent pas, ne rétrécissent pas) */
 .top-bar, #betting-board, .hud, .controls {
-    flex-shrink: 0; 
+    flex: 0 0 auto; /* 0 grow, 0 shrink, taille auto */
     width: 96%; 
     max-width: 500px;
     margin-left: auto; 
@@ -99,12 +96,16 @@ h1 {
 .hud-value { font-size: 1.1em; font-weight: bold; color: #fff; font-family: monospace; }
 .hud-value.highlight { color: #f1c40f; }
 
-/* 3. ZONE DE JEU (ÉLÉMENT FLEXIBLE RELATIF) */
+/* 3. LA ZONE DU MILIEU (LE COEUR DU PROBLÈME) */
 .game-container {
-    flex-grow: 1; /* Prend l'espace restant */
-    min-height: 0; /* IMPORTANT : Permet de rétrécir */
+    /* MAGIE 1 : Prends tout l'espace qui reste verticalement */
+    flex: 1 1 auto; 
+    
+    /* MAGIE 2 : Accepte d'être tout petit si nécessaire (Crucial pour mobile) */
+    min-height: 0; 
+    
     display: flex; align-items: center; justify-content: center;
-    width: 100%; position: relative; padding: 5px;
+    width: 100%; position: relative; padding: 0;
 }
 
 #game-grid {
@@ -116,17 +117,18 @@ h1 {
     background: #000; padding: 4px; border-radius: 12px; border: 2px solid #333;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 
-    /* --- CORRECTION DE LA TAILLE --- */
-    /* On force la grille à ne pas dépasser 60% de la hauteur de l'écran */
-    /* Cela laisse environ 40% pour l'entête, le HUD et les boutons du bas */
-    height: auto;
-    width: auto;
-    max-height: 60dvh; 
+    /* MAGIE 3 : La grille s'adapte à son conteneur parent (.game-container) */
+    /* Elle ne dépassera JAMAIS l'espace libre, ni en largeur, ni en hauteur */
+    max-width: 96%;
+    max-height: 96%;
     
-    /* On garde le ratio carré, la largeur s'adaptera à la hauteur */
+    /* Ratio carré obligatoire */
     aspect-ratio: 1 / 1;
     
-    /* Centrage */
+    /* Fallback width/height pour le ratio */
+    width: auto;
+    height: auto;
+    
     margin: auto;
 }
 
@@ -134,13 +136,13 @@ h1 {
 .tile {
     width: 100%; height: 100%; background-color: var(--tile-bg);
     display: flex; align-items: center; justify-content: center;
-    font-size: clamp(10px, 4cqi, 26px); /* Police intelligente */
-    font-size: clamp(10px, 3.5vh, 26px); /* Fallback */
+    /* Police relative à la grille, pas à l'écran */
+    font-size: clamp(10px, 4cqi, 26px);
+    font-size: clamp(10px, 3.5vh, 26px); 
     font-weight: 800; border-radius: 4px;
     position: relative; transition: transform 0.1s;
     border-bottom: 2px solid rgba(0,0,0,0.3); cursor: pointer;
 }
-/* Couleurs */
 .val-1 { color: var(--c1); border: 1px solid rgba(0, 243, 255, 0.3); background: rgba(0, 243, 255, 0.05); }
 .val-2 { color: var(--c2); border: 1px solid rgba(41, 128, 185, 0.3); background: rgba(41, 128, 185, 0.05); }
 .val-3 { color: var(--c3); border: 1px solid rgba(155, 89, 182, 0.3); background: rgba(155, 89, 182, 0.05); }
@@ -156,14 +158,16 @@ h1 {
 .anim-match { animation: flash 0.2s forwards; background: #fff !important; }
 @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.5; transform: scale(1.1); } 100% { opacity: 0; } }
 
-/* 4. CONTRÔLES (CORRIGÉS) */
+/* 4. CONTRÔLES (CORRIGÉS ET RÉTABLIS) */
 .controls { 
     display: flex; gap: 8px; 
+    /* Marge du bas sécurisée */
     padding-bottom: max(10px, env(safe-area-inset-bottom)); 
     padding-top: 5px;
+    margin-top: auto; /* Pousse vers le bas si jamais il y a du vide */
 }
 
-/* Style de base des boutons (SANS FLEX 1) */
+/* Style de base */
 button { 
     padding: 12px 0; border: none; border-radius: 8px;
     font-weight: bold; font-size: clamp(12px, 3.5vw, 16px);
@@ -172,7 +176,7 @@ button {
 }
 button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.5); }
 
-/* --- C'EST ICI LA CORRECTION : SEULS LES BOUTONS DE CONTRÔLE S'ÉTIRENT --- */
+/* SEULS CES BOUTONS DOIVENT S'ÉTIRER HORIZONTALEMENT */
 .controls button {
     flex: 1;
 }
@@ -181,7 +185,7 @@ button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.5);
 #btn-shuffle { color: var(--c6); background: #1f1d0a; }
 #btn-reset { color: #fff; background: #222; }
 
-/* ECRAN TITRE (BOUTON JOUER CORRIGÉ) */
+/* ECRAN TITRE */
 #start-screen {
     position: absolute; top: 0; left: 0; 
     width: 100%; height: 100%; 
@@ -195,15 +199,13 @@ button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.5);
     margin-bottom: 20px; letter-spacing: 4px; text-align: center;
 }
 .btn-start {
-    /* Style Spécifique JOUER */
     background: #e67e22; color: #fff; border: none;
     padding: 15px 40px; font-size: 1.5em; font-weight: bold;
     border-radius: 50px; cursor: pointer;
     box-shadow: 0 0 20px rgba(230, 126, 34, 0.4);
     animation: pulse 1.5s infinite;
-    
-    /* SECURITE ANTI-ETIREMENT */
-    flex: 0 0 auto; 
+    /* FIX : Pas d'étirement vertical */
+    flex: 0 0 auto;
     width: auto; max-width: 80%;
 }
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
