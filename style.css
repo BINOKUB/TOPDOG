@@ -12,10 +12,8 @@
 
 * { box-sizing: border-box; }
 
-/* --- MISE EN PAGE PRINCIPALE (CORRIGÉE MOBILE) --- */
-html {
-    height: 100%;
-}
+/* --- MISE EN PAGE PRINCIPALE --- */
+html { height: 100%; }
 
 body {
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -23,20 +21,17 @@ body {
     color: var(--tile-text);
     margin: 0; padding: 0;
     
-    /* HAUTEUR DYNAMIQUE : S'adapte à la barre d'adresse */
+    /* 100dvh pour mobile */
     height: 100dvh; 
-    /* Fallback pour vieux navigateurs */
-    min-height: 100vh; 
+    min-height: 100vh;
     
-    /* INTERDIT LE SCROLL GLOBAL */
-    overflow: hidden; 
-    position: relative; /* On enlève le 'fixed' qui posait problème */
+    overflow: hidden; /* Pas de scroll */
+    position: relative; 
     
-    /* FLEXBOX VERTICAL : Empile tout proprement */
+    /* FLEXBOX VERTICAL */
     display: flex; 
     flex-direction: column; 
-    align-items: center; 
-    justify-content: space-between;
+    justify-content: space-between; /* Espace tout au max */
 
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
@@ -46,43 +41,42 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* --- HEADER (Fixe en haut) --- */
+/* --- HEADER --- */
 .top-bar {
-    width: 94%; max-width: 500px;
+    width: 96%; max-width: 500px;
     display: flex; justify-content: space-between; align-items: center;
     padding: 10px 0 5px 0;
-    flex-shrink: 0; /* Ne jamais rétrécir */
+    flex-shrink: 0; margin: 0 auto;
     z-index: 10;
 }
 h1 { 
     margin: 0; font-style: italic; color: #fff; 
-    font-size: clamp(20px, 5vw, 28px); 
+    font-size: clamp(18px, 5vw, 24px); 
     font-weight: 900; letter-spacing: 2px;
     text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
 }
 
-.header-buttons { display: flex; gap: 10px; }
+.header-buttons { display: flex; gap: 8px; }
 
 .btn-circle {
-    width: 32px; height: 32px; border-radius: 50%; border: 2px solid #333;
+    width: 30px; height: 30px; border-radius: 50%; border: 2px solid #333;
     background: #111; color: #888; font-weight: bold; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; font-size: 1.2em;
+    display: flex; align-items: center; justify-content: center; font-size: 1em;
 }
-.btn-circle:active { transform: scale(0.9); background: #222; }
 
-/* --- TABLEAU PARIS (HUD) --- */
+/* --- HUD --- */
 #betting-board {
-    width: 94%; max-width: 500px;
+    width: 96%; max-width: 500px;
     display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;
-    margin-bottom: 5px; flex-shrink: 0;
+    margin: 0 auto 5px auto; flex-shrink: 0;
 }
 .bet-card {
     display: flex; justify-content: space-between; align-items: center;
     background: #0f0f0f; padding: 4px 8px; border-radius: 6px;
     border: 1px solid #333; border-left: 3px solid #444;
-    font-size: clamp(10px, 3.5vw, 14px);
+    font-size: 12px;
 }
-.bet-card.winner { border-color: #2ecc71; background: #0b2210; box-shadow: 0 0 10px rgba(46, 204, 113, 0.2); }
+.bet-card.winner { border-color: #2ecc71; background: #0b2210; }
 .bet-card.loser { opacity: 0.3; filter: grayscale(100%); }
 .dog-badge { 
     background: #fff; color: #000; font-size: 0.8em; 
@@ -92,45 +86,47 @@ h1 {
 .dog-name { display: flex; align-items: center; font-weight: 700; color:#ccc;}
 .bet-amount { color: #2ecc71; font-family: monospace; font-weight: bold; }
 
-/* --- HUD SCORE --- */
 .hud { 
-    display: flex; width: 94%; max-width: 500px; justify-content: space-between;
+    display: flex; width: 96%; max-width: 500px; justify-content: space-between;
     background: #111; padding: 5px 15px; border-radius: 50px; border: 1px solid #222;
-    margin-bottom: 5px; flex-shrink: 0;
+    margin: 0 auto 5px auto; flex-shrink: 0;
 }
 .hud-item { display: flex; flex-direction: column; align-items: center; }
 .hud-label { font-size: 0.6em; color: #666; letter-spacing: 1px; }
-.hud-value { font-size: 1.2em; font-weight: bold; color: #fff; font-family: monospace; }
-.hud-value.highlight { color: #f1c40f; text-shadow: 0 0 5px rgba(241, 196, 15, 0.4); }
+.hud-value { font-size: 1.1em; font-weight: bold; color: #fff; font-family: monospace; }
+.hud-value.highlight { color: #f1c40f; }
 
-/* --- JEU (ZONE FLEXIBLE) --- */
+/* --- JEU (ZONE FLEXIBLE CRUCIALE) --- */
 .game-container {
     flex-grow: 1; /* Prend tout l'espace disponible */
-    min-height: 0; /* Important pour que le contenu puisse rétrécir */
+    min-height: 0; /* Permet de réduire si nécessaire */
     display: flex; align-items: center; justify-content: center;
-    width: 100%; position: relative; overflow: hidden; padding: 5px 0;
+    width: 100%; position: relative; overflow: hidden; padding: 0;
 }
 
 #game-grid {
     display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); gap: 3px;
     background: #000; padding: 4px; border-radius: 12px; border: 2px solid #333;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     
-    /* TAILLE INTELLIGENTE */
-    width: auto; height: auto;
-    max-width: 95%; max-height: 95%; /* Ne jamais déborder */
-    aspect-ratio: 1 / 1; /* Garde le carré parfait */
+    /* LA CORRECTION "COLLANTE" EST ICI */
+    /* On force la grille à respecter l'espace le plus petit */
+    /* Soit la largeur (95vw), soit la hauteur disponible */
+    width: min(94vw, 55vh); 
+    height: min(94vw, 55vh);
+    
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
 /* --- TUILES --- */
 .tile {
     width: 100%; height: 100%; background-color: var(--tile-bg);
     display: flex; align-items: center; justify-content: center;
-    font-size: clamp(14px, 4vh, 28px); /* Police qui s'adapte à la hauteur */
+    font-size: clamp(14px, 4vmin, 24px); /* Police adaptative */
     font-weight: 800; border-radius: 4px;
     position: relative; transition: transform 0.1s;
     border-bottom: 2px solid rgba(0,0,0,0.3); cursor: pointer;
 }
+/* Couleurs */
 .val-1 { color: var(--c1); border: 1px solid rgba(0, 243, 255, 0.3); background: rgba(0, 243, 255, 0.05); }
 .val-2 { color: var(--c2); border: 1px solid rgba(41, 128, 185, 0.3); background: rgba(41, 128, 185, 0.05); }
 .val-3 { color: var(--c3); border: 1px solid rgba(155, 89, 182, 0.3); background: rgba(155, 89, 182, 0.05); }
@@ -140,29 +136,24 @@ h1 {
 .val-7 { color: var(--c7); border: 1px solid rgba(230, 126, 34, 0.3); background: rgba(230, 126, 34, 0.05); }
 .val-8 { color: var(--c8); border: 1px solid rgba(231, 76, 60, 0.3); background: rgba(231, 76, 60, 0.05); }
 
-/* --- LE CHIEN --- */
-.tile.nine {
-    border: 2px solid var(--accent-dog); 
-    background-color: #000;
-    display: flex; align-items: center; justify-content: center;
-    padding: 0; overflow: hidden;
-}
-
+.tile.nine { border: 2px solid var(--accent-dog); background-color: #000; padding: 0; overflow: hidden; }
 .tile.selected { background-color: #333; transform: scale(0.9); box-shadow: 0 0 10px #fff; z-index: 10; border-color:#fff;}
 .tile.empty { background: transparent; border: 1px dashed #222; box-shadow: none; }
 .anim-match { animation: flash 0.2s forwards; background: #fff !important; }
 @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.5; transform: scale(1.1); } 100% { opacity: 0; } }
 
-/* --- CONTROLES (Fixes en bas) --- */
+/* --- CONTROLES (TOUJOURS VISIBLES) --- */
 .controls { 
-    display: flex; gap: 8px; width: 94%; max-width: 500px;
-    margin-bottom: max(10px, env(safe-area-inset-bottom)); /* Respecte l'iPhone X+ */
-    padding-bottom: 5px;
-    flex-shrink: 0; /* Ne jamais cacher les boutons */
+    display: flex; gap: 8px; width: 96%; max-width: 500px;
+    margin: 0 auto;
+    /* Marge du bas sécurisée pour iPhone */
+    padding-bottom: max(10px, env(safe-area-inset-bottom)); 
+    padding-top: 5px;
+    flex-shrink: 0; 
 }
 button { 
     flex: 1; padding: 12px 0; border: none; border-radius: 8px;
-    font-weight: bold; font-size: clamp(12px, 4vw, 16px);
+    font-weight: bold; font-size: clamp(12px, 3.5vw, 16px);
     text-transform: uppercase; cursor: pointer; transition: 0.1s;
     box-shadow: 0 4px 0 rgba(0,0,0,0.5);
 }
@@ -171,6 +162,27 @@ button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.5);
 #btn-shuffle { color: var(--c6); background: #1f1d0a; }
 #btn-reset { color: #fff; background: #222; }
 
+/* ECRAN TITRE */
+#start-screen {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: #050505; z-index: 999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.logo-title {
+    font-size: 3em; font-weight: 900; font-style: italic;
+    background: linear-gradient(45deg, #fff, #888);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 20px; letter-spacing: 4px;
+}
+.btn-start {
+    background: #e67e22; color: #fff; border: none;
+    padding: 15px 40px; font-size: 1.5em; font-weight: bold;
+    border-radius: 50px; cursor: pointer;
+    box-shadow: 0 0 20px rgba(230, 126, 34, 0.4);
+    animation: pulse 1.5s infinite;
+}
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
 /* OVERLAYS */
 #message-overlay {
     position: absolute; top:0; left:0; width:100%; height:100%;
@@ -178,12 +190,8 @@ button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.5);
     display: none; flex-direction: column; align-items: center; justify-content: center;
     text-align: center; padding: 20px;
 }
-
 .tile.hint-flash {
-    background-color: #2ecc71 !important;
-    color: #000 !important;
-    box-shadow: 0 0 20px #2ecc71;
-    transform: scale(1.1);
-    z-index: 50;
-    transition: all 0.2s;
+    background-color: #2ecc71 !important; color: #000 !important;
+    box-shadow: 0 0 20px #2ecc71; transform: scale(1.1);
+    z-index: 50; transition: all 0.2s;
 }
