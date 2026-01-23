@@ -2,14 +2,17 @@
     --bg-color: #050505;
     --tile-bg: #151515;
     --tile-text: #fff;
+    
+    /* PALETTE NEON */
     --c1: #00f3ff; --c2: #2980b9; --c3: #9b59b6; --c4: #ff00ff;
     --c5: #2ecc71; --c6: #f1c40f; --c7: #e67e22; --c8: #e74c3c;
+    
     --accent-dog: #ff9f43;
 }
 
 * { box-sizing: border-box; }
 
-/* --- STRUCTURE PRINCIPALE (BLINDÉE AVEC !IMPORTANT) --- */
+/* --- MISE EN PAGE PRINCIPALE --- */
 html { height: 100%; }
 
 body {
@@ -18,32 +21,66 @@ body {
     color: var(--tile-text);
     margin: 0; padding: 0;
     
-    /* On force la hauteur et le flexbox par-dessus les skins */
-    height: 100dvh !important; 
-    min-height: 100vh !important;
-    overflow: hidden !important; 
-    position: relative !important; 
+    /* HAUTEUR DYNAMIQUE MOBILE */
+    height: 100dvh; 
+    /* Fallback */
+    min-height: 100vh;
     
-    display: flex !important; 
-    flex-direction: column !important; 
-    justify-content: space-between !important;
-    align-items: center !important;
+    overflow: hidden; /* CRUCIAL : Pas de scroll */
+    position: relative; 
+    
+    /* FLEXBOX VERTICAL */
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; /* Centre horizontalement */
+    justify-content: space-between; /* Espace vertical réparti */
 
+    /* Marges de sécurité iPhone */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    
     overscroll-behavior: none;
     -webkit-user-select: none; user-select: none;
     -webkit-tap-highlight-color: transparent;
 }
+
+/* --- ECRAN TITRE (Correction Barre Orange) --- */
+#start-screen {
+    position: absolute; top: 0; left: 0; 
+    width: 100%; height: 100%; /* Prend tout l'écran */
+    background: #050505; z-index: 9999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.logo-title {
+    font-size: 3em; font-weight: 900; font-style: italic;
+    background: linear-gradient(45deg, #fff, #888);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 20px; letter-spacing: 4px;
+    text-align: center;
+}
+.btn-start {
+    background: #e67e22; color: #fff; border: none;
+    padding: 15px 40px; font-size: 1.5em; font-weight: bold;
+    border-radius: 50px; cursor: pointer;
+    box-shadow: 0 0 20px rgba(230, 126, 34, 0.4);
+    animation: pulse 1.5s infinite;
+    /* On s'assure qu'il ne s'étire pas */
+    width: auto; max-width: 80%;
+}
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
 /* --- HEADER --- */
 .top-bar {
     width: 96%; max-width: 500px;
     display: flex; justify-content: space-between; align-items: center;
     padding: 10px 0 5px 0;
-    flex-shrink: 0; z-index: 10;
+    flex-shrink: 0; /* Ne rétrécit jamais */
+    z-index: 10;
 }
 h1 { 
     margin: 0; font-style: italic; color: #fff; 
-    font-size: clamp(18px, 5vw, 24px); font-weight: 900; letter-spacing: 2px;
+    font-size: clamp(18px, 5vw, 24px); 
+    font-weight: 900; letter-spacing: 2px;
     text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
 }
 .header-buttons { display: flex; gap: 8px; }
@@ -62,7 +99,8 @@ h1 {
 .bet-card {
     display: flex; justify-content: space-between; align-items: center;
     background: #0f0f0f; padding: 4px 8px; border-radius: 6px;
-    border: 1px solid #333; border-left: 3px solid #444; font-size: 12px;
+    border: 1px solid #333; border-left: 3px solid #444;
+    font-size: 12px;
 }
 .bet-card.winner { border-color: #2ecc71; background: #0b2210; }
 .bet-card.loser { opacity: 0.3; filter: grayscale(100%); }
@@ -84,28 +122,29 @@ h1 {
 .hud-value { font-size: 1.1em; font-weight: bold; color: #fff; font-family: monospace; }
 .hud-value.highlight { color: #f1c40f; }
 
-/* --- JEU (ZONE FLEXIBLE - PROTECTION MAXIMALE) --- */
+/* --- JEU (ZONE FLEXIBLE - LA CORRECTION EST ICI) --- */
 .game-container {
-    flex-grow: 1 !important; /* Force l'occupation de l'espace */
-    min-height: 0 !important; /* Force la capacité à rétrécir */
-    display: flex !important; align-items: center; justify-content: center;
+    flex-grow: 1; /* Prend tout l'espace disponible */
+    min-height: 0; /* Permet de réduire si l'écran est petit */
+    display: flex; align-items: center; justify-content: center;
     width: 100%; position: relative; overflow: hidden; padding: 0;
-    z-index: 1;
 }
 
 #game-grid {
     display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); gap: 3px;
     background: #000; padding: 4px; border-radius: 12px; border: 2px solid #333;
     
-    /* On force la grille à être un peu plus petite pour laisser de la place aux boutons */
+    /* MAGIE RESPONSIVE : */
     width: auto;
     height: auto;
     
-    /* On réduit la taille max pour être SÛR que ça rentre */
-    max-width: 92% !important; 
-    max-height: 92% !important; 
+    /* Ne dépasse jamais 95% de la largeur, NI 96% de la HAUTEUR disponible */
+    max-width: 95%; 
+    max-height: 96%; 
     
+    /* Reste toujours carré */
     aspect-ratio: 1 / 1;
+    
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
@@ -113,7 +152,9 @@ h1 {
 .tile {
     width: 100%; height: 100%; background-color: var(--tile-bg);
     display: flex; align-items: center; justify-content: center;
-    font-size: clamp(12px, 3.5vh, 26px); font-weight: 800; border-radius: 4px;
+    /* Police adaptative à la taille de la grille (container query simulé) */
+    font-size: clamp(12px, 3.5vh, 26px);
+    font-weight: 800; border-radius: 4px;
     position: relative; transition: transform 0.1s;
     border-bottom: 2px solid rgba(0,0,0,0.3); cursor: pointer;
 }
@@ -132,26 +173,16 @@ h1 {
 .anim-match { animation: flash 0.2s forwards; background: #fff !important; }
 @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.5; transform: scale(1.1); } 100% { opacity: 0; } }
 
-/* --- CONTROLES (FORCE MAJEURE) --- */
+/* --- CONTROLES (TOUJOURS VISIBLES) --- */
 .controls { 
-    display: flex !important; 
-    gap: 10px; 
-    width: 96%; max-width: 500px;
+    display: flex; gap: 8px; width: 96%; max-width: 500px;
     margin: 0 auto;
-    
-    /* MARGE DE SÉCURITÉ GÉANTE */
-    /* On force le bas à remonter de 25px minimum + la zone de sécurité */
-    padding-bottom: max(25px, env(safe-area-inset-bottom)) !important; 
-    padding-top: 10px;
-    
-    flex-shrink: 0 !important; 
-    z-index: 9999 !important; /* Toujours au dessus de tout */
-    position: relative !important;
-    background-color: transparent; /* Au cas où */
+    padding-bottom: max(10px, env(safe-area-inset-bottom)); /* Sécurité iPhone */
+    padding-top: 5px;
+    flex-shrink: 0; /* IMPORTANT : Interdit de rétrécir */
 }
-
 button { 
-    flex: 1; padding: 15px 0; border: none; border-radius: 8px;
+    flex: 1; padding: 12px 0; border: none; border-radius: 8px;
     font-weight: bold; font-size: clamp(12px, 3.5vw, 16px);
     text-transform: uppercase; cursor: pointer; transition: 0.1s;
     box-shadow: 0 4px 0 rgba(0,0,0,0.5);
@@ -160,29 +191,6 @@ button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.5);
 #btn-hint { color: var(--c1); background: #0a1f20; }
 #btn-shuffle { color: var(--c6); background: #1f1d0a; }
 #btn-reset { color: #fff; background: #222; }
-
-/* ECRAN TITRE */
-#start-screen {
-    position: absolute; top: 0; left: 0; 
-    width: 100%; height: 100%; 
-    background: #050505; z-index: 9999;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-}
-.logo-title {
-    font-size: 3em; font-weight: 900; font-style: italic;
-    background: linear-gradient(45deg, #fff, #888);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    margin-bottom: 20px; letter-spacing: 4px; text-align: center;
-}
-.btn-start {
-    background: #e67e22; color: #fff; border: none;
-    padding: 15px 40px; font-size: 1.5em; font-weight: bold;
-    border-radius: 50px; cursor: pointer;
-    box-shadow: 0 0 20px rgba(230, 126, 34, 0.4);
-    animation: pulse 1.5s infinite;
-    width: auto; max-width: 80%;
-}
-@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
 /* OVERLAYS */
 #message-overlay {
