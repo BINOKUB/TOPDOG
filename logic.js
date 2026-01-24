@@ -6,9 +6,35 @@
 const CONFIG = {
     gridSize: 8,
     timeLimit: 120, 
-    dogNames: ["SPARTACUS", "TITAN", "HURRICANE", "VIPER", "GHOST", "BANDIT", "REX", "CHAOS", "ZEUS", "TANK", "TORNADO", "MERCURY", "BALTO", "MAXIMUS", "THOR", "COMET", "FLASH", "ECLAIR", "APOLLO", "CYCLONE", "PHANTOM", "STORM", "TEPPY"]
-};
 
+   dogNames: [
+        // --- ORIGINAUX ---
+        "SPARTACUS", "TITAN", "HURRICANE", "VIPER", "GHOST", 
+        "BANDIT", "REX", "CHAOS", "ZEUS", "TANK", 
+        "TORNADO", "MERCURY", "BALTO", "MAXIMUS", "THOR", 
+        "COMET", "FLASH", "ECLAIR", "APOLLO", "CYCLONE", 
+        "PHANTOM", "STORM", "TEPPY",
+        
+        // --- NOUVEAUX (MYTHOLOGIE & GUERRE) ---
+        "ARES", "HADES", "ODIN", "HERCULES", "CERBERUS", 
+        "CAESAR", "BRUTUS", "GOLIATH", "SAMURAI", "NINJA",
+        "VIKING", "SPARTAN", "GENERAL", "MAJOR", "SNIPER",
+
+        // --- NOUVEAUX (VITESSE & PUISSANCE) ---
+        "NITRO", "TURBO", "DIESEL", "ROCKET", "JET", 
+        "SONIC", "VOLT", "MAGNUM", "BULLET", "DOZER", 
+        "KONG", "GODZILLA", "JAX", "SPIKE", "BUTCH",
+
+        // --- NOUVEAUX (NATURE & ÉLÉMENTS) ---
+        "THUNDER", "BLIZZARD", "PYRO", "AVALANCHE", "SHADOW", 
+        "VENOM", "COBRA", "DRACO", "BLAZE", "FROST",
+
+        // --- NOUVEAUX (PRESTIGE) ---
+        "LEGEND", "CHAMP", "BOSS", "KING", "ACE", 
+        "JOKER", "DUKE", "BARON", "PRINCE", "LUCKY"
+    ]
+};
+  
 let gameState = {
     grid: [], 
     bankroll: 0, 
