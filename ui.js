@@ -1,6 +1,6 @@
 /* =========================================
-   TOPDOG UI ENGINE V28 - TURBO CHARGED
-   FIX: REACTIVITÉ INSTANTANÉE + MOBILE FIX
+   TOPDOG UI ENGINE V29 - SAFETY LOCK - release ver 1.3
+   FIX: ANTI-SKIP VICTOIRE (COOLDOWN 1.5s)
    ========================================= */
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -125,26 +125,23 @@ document.getElementById('btn-shuffle').onclick = () => {
 function startGame() {
     console.log("🔄 REDÉMARRAGE DU JEU...");
 
-    // 0. FIX MOBILE : On force le recalcul de la hauteur d'écran
-    // Cela aide à corriger le bug des boutons qui disparaissent
+    // 0. FIX MOBILE
     document.body.style.height = window.innerHeight + 'px';
 
-    // 1. ON VA CHERCHER L'ARGENT SUR LE DISQUE
+    // 1. ARGENT
     let disqueArgent = localStorage.getItem('topdog_wallet');
     let vraieArgent = disqueArgent ? parseInt(disqueArgent) : 0;
     
-    // 2. ON LANCE LE MOTEUR
+    // 2. MOTEUR
     initGameEngine();
     
-    // 3. ON FORCE LE MOTEUR À PRENDRE LA VRAIE VALEUR
+    // 3. FORCE VALEUR
     if(typeof gameState !== 'undefined') {
         gameState.bankroll = vraieArgent;
     }
 
-    // 4. ON MET À JOUR L'AFFICHAGE
+    // 4. UI
     updateHUD(); 
-
-    // 5. LE RESTE DU DÉMARRAGE
     renderBettingBoard();
     renderGrid();
     startTimer();
@@ -222,10 +219,7 @@ function renderGrid() {
                 tile.classList.add('selected');
             }
             
-            // --- MODIFICATION CRUCIALE POUR LA REACTIVITÉ ---
-            // On utilise 'onpointerdown' pour une réaction instantanée sur mobile
             tile.onpointerdown = (e) => {
-                // Empêche le clic fantôme et le scroll
                 e.preventDefault(); 
                 onTileClick(r, c);
             };
@@ -269,8 +263,6 @@ function doMatch(r1, c1, r2, c2) {
 
     selectedTile = null;
 
-    // --- ACCÉLÉRATION DU JEU (50ms au lieu de 250ms) ---
-    // C'est ça qui rendait le jeu "mou"
     setTimeout(() => {
         processMatch(r1, c1, r2, c2); 
         applyGravityLogic();          
@@ -281,7 +273,7 @@ function doMatch(r1, c1, r2, c2) {
         } else {
             isProcessing = false;
         }
-    }, 50); // <-- 50ms c'est instantané pour l'oeil, mais laisse le temps au flash
+    }, 50); 
 }
 
 function fireConfetti() {
@@ -304,7 +296,6 @@ function handleWin(dogId) {
 
     gameState.bankroll += bonusAmount;
     
-    // SAUVEGARDE AUTOMATIQUE
     if(typeof saveWallet === 'function') {
         saveWallet(gameState.bankroll);
     } else {
@@ -312,7 +303,6 @@ function handleWin(dogId) {
     }
     
     updateHUD(); 
-    
     document.getElementById(`bet-dog-${dogId}`).classList.add('winner');
     
     showMessage(
@@ -396,13 +386,26 @@ function showHint() {
     }
 }
 
-/* --- LE MESSAGE BOX CLEAN --- */
+/* --- LE MESSAGE BOX AVEC VERROU DE SÉCURITÉ --- */
 function showMessage(title, content) {
     const overlay = document.getElementById('message-overlay');
     overlay.style.display = 'flex';
     
+    // 1. Bouton "Éteint" par défaut (Gris + Non cliquable)
     let buttonsHtml = `
-        <button onclick="startGame()" style="margin-top:20px; background:#2ecc71; color:#000; font-size:1.2em; padding:15px 30px; border:none; border-radius:50px; font-weight:bold; cursor:pointer; box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);">
+        <button id="btn-replay-action" onclick="startGame()" style="
+            margin-top:20px; 
+            background:#555; /* GRIS */
+            color:#888; 
+            font-size:1.2em; 
+            padding:15px 30px; 
+            border:none; 
+            border-radius:50px; 
+            font-weight:bold; 
+            cursor:not-allowed; 
+            box-shadow: none; 
+            pointer-events: none; /* BLOQUE LES CLICS */
+            transition: all 0.3s;">
             REJOUER
         </button>`;
     
@@ -411,6 +414,23 @@ function showMessage(title, content) {
         <div style="color:#ccc; line-height:1.5; font-size:1.2em;">${content}</div>
         ${buttonsHtml}
     `;
+
+    // 2. Le Timer de 1.5 Secondes
+    setTimeout(() => {
+        let btn = document.getElementById('btn-replay-action');
+        if(btn) {
+            // ACTIVATION ! (Devient Vert et Cliquable)
+            btn.style.background = '#2ecc71';
+            btn.style.color = '#000';
+            btn.style.cursor = 'pointer';
+            btn.style.pointerEvents = 'auto'; // DÉBLOQUE LES CLICS
+            btn.style.boxShadow = '0 0 15px rgba(46, 204, 113, 0.4)';
+            
+            // Petite animation "Pop" pour dire qu'il est prêt
+            btn.style.transform = 'scale(1.05)';
+            setTimeout(() => btn.style.transform = 'scale(1)', 150);
+        }
+    }, 1500); // 1.5 Secondes de pause
 }
 
 function hideMessage() { document.getElementById('message-overlay').style.display = 'none'; }
