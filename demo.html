@@ -8,84 +8,96 @@
     <link rel="stylesheet" href="style.css?v=FINAL">
     <link rel="stylesheet" href="skin-neon.css"> 
 
-    <style>
-        /* 1. FOND ET LAYOUT */
+   <style>
+        /* 1. FOND ET LAYOUT (STRATÉGIE SANDWICH) */
         html, body {
             background-color: #000 !important;
             background-image: radial-gradient(circle at center, #1a1a1a 0%, #000 70%);
-            /* On s'assure que ça prend tout l'écran */
+            
+            /* Hauteur dynamique 100% de l'écran visible */
             height: 100dvh; 
             margin: 0; padding: 0;
-            display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; /* Centrage vertical */
+            
+            display: flex; 
+            flex-direction: column; 
+            
+            /* C'est ICI le secret : On écarte les éléments au max */
+            /* Le titre monte, le bouton descend, la grille reste au milieu */
+            justify-content: space-between; 
+            align-items: center;
+            
             overflow: hidden; /* Pas de scroll */
             
-            /* Petite marge de sécurité pour ne pas coller aux bords */
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
+            /* Marges de sécurité pour ne pas coller aux bords du téléphone */
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
         }
         
+        /* 2. LE TITRE (FIXÉ EN HAUT) */
         .demo-title {
-            font-size: clamp(1.2em, 5vw, 1.8em); /* Texte responsive */
+            flex: 0 0 auto; /* Ne rétrécit pas */
+            font-size: clamp(1.2em, 5vw, 1.8em);
             color: #fff; font-weight: 900;
             text-shadow: 0 0 15px #00f3ff;
             text-transform: uppercase; letter-spacing: 3px;
-            margin-bottom: 15px; /* Marge réduite */
             text-align: center;
-            flex-shrink: 0; /* Le titre ne doit pas disparaître */
+            margin-bottom: 10px;
         }
 
-        /* 2. CONTENEUR RELATIF (C'EST ICI LA CORRECTION) */
+        /* 3. CONTENEUR CENTRAL (LA GRILLE) */
         .demo-container {
+            /* FLEXIBILITÉ TOTALE */
+            flex: 1; /* Occupe tout l'espace libre au milieu */
+            min-height: 0; /* Autorise le rétrécissement extrême si nécessaire */
+            
+            display: flex; align-items: center; justify-content: center;
             position: relative;
-            
-            /* AVANT : width: 320px; height: 320px; (Trop rigide) */
-            
-            /* MAINTENANT : TAILLE INTELLIGENTE */
-            /* 1. Essaie de faire 320px */
-            /* 2. Mais ne dépasse jamais 90% de la largeur de l'écran (90vw) */
-            /* 3. Et ne dépasse jamais 50% de la HAUTEUR de l'écran (50vh) -> Laisse place au bouton ! */
-            width: min(320px, min(90vw, 50vh));
-            height: min(320px, min(90vw, 50vh));
-            
-            /* Garde le carré parfait */
-            aspect-ratio: 1 / 1;
+            width: 100%;
         }
 
-        /* 3. GRILLE */
+        /* 4. LA GRILLE ELLE-MÊME */
         #game-grid {
             pointer-events: none;
             border: 2px solid #00f3ff;
             box-shadow: 0 0 30px rgba(0, 243, 255, 0.15);
             background: #000;
             border-radius: 15px;
-            width: 100%; height: 100%;
+            
             display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); gap: 2px;
             padding: 4px;
+            
+            /* TAILLE INTELLIGENTE */
+            /* La grille essaie de faire 320px */
+            /* MAIS elle ne dépassera jamais la largeur de l'écran (90%) */
+            /* ET SURTOUT : elle ne dépassera jamais l'espace libre en hauteur ! */
+            width: auto;
+            height: auto;
+            max-width: min(320px, 90vw);
+            max-height: min(320px, 90vw);
+            
+            aspect-ratio: 1 / 1; /* Carré parfait obligatoire */
         }
 
         /* TUILES */
         .tile {
             width: 100%; height: 100%;
             display: flex; align-items: center; justify-content: center;
-            /* Police qui s'adapte à la taille de la grille */
+            /* Police adaptative */
             font-size: clamp(10px, 4cqi, 20px); 
             font-weight: bold; border-radius: 3px;
             background: #111; color: #555;
         }
         .tile.nine {
             background: #ff00ff !important; color: #fff !important;
-            /* Emoji un peu plus grand */
             font-size: 1.4em; border: 2px solid #fff; z-index: 10;
         }
-        /* Couleurs spécifiques pour la démo */
         .tile.val-4, .tile.val-5 { color: #fff; background: #333; border: 1px solid #2ecc71; }
         .tile.val-7, .tile.val-2 { color: #fff; background: #333; border: 1px solid #f1c40f; }
         .tile.val-6, .tile.val-3 { color: #fff; background: #333; border: 1px solid #e74c3c; }
         .tile.empty { background: transparent; border: 1px dashed #222; }
         .tile.selected { background: #fff !important; color: #000 !important; transform: scale(1.1); }
 
-        /* 4. BULLE D'INFO */
+        /* 5. BULLE D'INFO */
         .math-bubble {
             position: absolute;
             top: 50%; left: 50%;
@@ -97,7 +109,7 @@
             
             padding: 10px 20px; border-radius: 15px;
             font-weight: 900; 
-            font-size: clamp(1em, 4vw, 1.4em); /* Texte bulle responsive */
+            font-size: clamp(1em, 4vw, 1.4em);
             
             text-align: center;
             box-shadow: 0 0 30px rgba(0, 243, 255, 0.3);
@@ -107,21 +119,22 @@
             white-space: nowrap;
         }
 
-        /* 5. MAIN */
+        /* 6. MAIN FANTÔME */
         #ghost-hand {
             position: absolute; font-size: 40px; z-index: 3000;
             transition: all 0.5s ease-in-out; pointer-events: none; display: none;
             filter: drop-shadow(0 0 5px #000);
+            /* Important : La main est positionnée par JS, rien à changer ici */
         }
 
-        /* BOUTON RETOUR */
+        /* 7. BOUTON RETOUR (FIXÉ EN BAS) */
         .btn-close-demo {
-            margin-top: 20px; /* Marge réduite */
+            flex: 0 0 auto; /* Ne rétrécit pas */
+            margin-top: 10px;
             background: transparent; border: 2px solid #00f3ff; color: #00f3ff;
             padding: 15px 40px; border-radius: 50px;
             font-size: 1em; cursor: pointer; text-decoration: none; font-weight: bold;
             text-transform: uppercase; letter-spacing: 2px; transition: 0.3s;
-            flex-shrink: 0; /* Empêche l'écrasement */
         }
         .btn-close-demo:hover { background: #00f3ff; color: #000; box-shadow: 0 0 20px #00f3ff; }
 
