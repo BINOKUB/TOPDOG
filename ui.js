@@ -1,6 +1,6 @@
 /* =========================================
-   TOPDOG UI ENGINE V27
-   FEATURES: AUTO-PAYOUT & CLEAN UI
+   TOPDOG UI ENGINE V28 - TURBO CHARGED
+   FIX: REACTIVITÉ INSTANTANÉE + MOBILE FIX
    ========================================= */
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -15,7 +15,7 @@ let isMuted = localStorage.getItem('topdog_muted') === 'true';
 /* --- FORMATTER D'ARGENT --- */
 function formatMoney(num) {
     if (!num) return "0"; 
-    if (num >= 1000000000) return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + 'G'; // Ajout des Milliards (G)
+    if (num >= 1000000000) return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + 'G'; 
     if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
     return num;
@@ -125,6 +125,10 @@ document.getElementById('btn-shuffle').onclick = () => {
 function startGame() {
     console.log("🔄 REDÉMARRAGE DU JEU...");
 
+    // 0. FIX MOBILE : On force le recalcul de la hauteur d'écran
+    // Cela aide à corriger le bug des boutons qui disparaissent
+    document.body.style.height = window.innerHeight + 'px';
+
     // 1. ON VA CHERCHER L'ARGENT SUR LE DISQUE
     let disqueArgent = localStorage.getItem('topdog_wallet');
     let vraieArgent = disqueArgent ? parseInt(disqueArgent) : 0;
@@ -217,7 +221,15 @@ function renderGrid() {
             if(selectedTile && selectedTile.r === r && selectedTile.c === c) {
                 tile.classList.add('selected');
             }
-            tile.onclick = () => onTileClick(r, c);
+            
+            // --- MODIFICATION CRUCIALE POUR LA REACTIVITÉ ---
+            // On utilise 'onpointerdown' pour une réaction instantanée sur mobile
+            tile.onpointerdown = (e) => {
+                // Empêche le clic fantôme et le scroll
+                e.preventDefault(); 
+                onTileClick(r, c);
+            };
+            
             gridElement.appendChild(tile);
         }
     }
@@ -257,6 +269,8 @@ function doMatch(r1, c1, r2, c2) {
 
     selectedTile = null;
 
+    // --- ACCÉLÉRATION DU JEU (50ms au lieu de 250ms) ---
+    // C'est ça qui rendait le jeu "mou"
     setTimeout(() => {
         processMatch(r1, c1, r2, c2); 
         applyGravityLogic();          
@@ -267,7 +281,7 @@ function doMatch(r1, c1, r2, c2) {
         } else {
             isProcessing = false;
         }
-    }, 250);
+    }, 50); // <-- 50ms c'est instantané pour l'oeil, mais laisse le temps au flash
 }
 
 function fireConfetti() {
@@ -285,9 +299,6 @@ function handleWin(dogId) {
     fireConfetti();
 
     let dog = gameState.dogs.find(d => d.id === dogId);
-    
-    // CALCUL DU GAIN TOTAL (10x la mise)
-    // Le gain est automatiquement ajouté à la bankroll
     let bonusAmount = dog.bet * 9; 
     let totalWin = dog.bet * 10;
 
@@ -304,7 +315,6 @@ function handleWin(dogId) {
     
     document.getElementById(`bet-dog-${dogId}`).classList.add('winner');
     
-    // AFFICHER LE MESSAGE (Sans bouton Encaisser)
     showMessage(
         "VICTOIRE !", 
         `<div style="font-size:1.5em; color:#fff; margin-bottom:5px;">${dog.name}</div>
@@ -386,13 +396,11 @@ function showHint() {
     }
 }
 
-/* --- LE MESSAGE BOX CLEAN (SANS ENCAISSER) --- */
+/* --- LE MESSAGE BOX CLEAN --- */
 function showMessage(title, content) {
     const overlay = document.getElementById('message-overlay');
     overlay.style.display = 'flex';
     
-    // ON A RETIRÉ LA LOGIQUE "ENCAISSER" ICI
-    // Il ne reste que le bouton REJOUER (qui relance startGame)
     let buttonsHtml = `
         <button onclick="startGame()" style="margin-top:20px; background:#2ecc71; color:#000; font-size:1.2em; padding:15px 30px; border:none; border-radius:50px; font-weight:bold; cursor:pointer; box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);">
             REJOUER
@@ -426,4 +434,3 @@ function startTimer() {
 if(document.readyState === 'complete') {
     // startGame() est appelé par topdog.html via launchApp()
 }
-
