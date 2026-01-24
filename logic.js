@@ -148,12 +148,22 @@ function initGameEngine() {
     let usedNames = [];
     const misesPossibles = [500, 1000, 2500, 5000, 7500, 75000, 80000, 10000, 25000, 50000, 100000, 150000];
 
+   // --- NOUVEAU SYSTÈME DE NOMS ALÉATOIRES (MÉLANGEUR) ---
+    
+    // 1. On mélange la liste complète des 60 noms
+    let nomsMelanges = [...CONFIG.dogNames].sort(() => 0.5 - Math.random());
+
+    // 2. On génère les 4 Chiens de la partie (Boucle remise à 4 !)
     for(let i=1; i<=4; i++) {
-        let name;
-        do { name = CONFIG.dogNames[Math.floor(Math.random() * CONFIG.dogNames.length)]; } while(usedNames.includes(name));
-        usedNames.push(name);
+        
+        // On choisit une mise au hasard
         let bet = misesPossibles[Math.floor(Math.random() * misesPossibles.length)];
-        gameState.dogs.push({ id: i, name: name, bet: bet });
+        
+        gameState.dogs.push({ 
+            id: i, 
+            name: nomsMelanges[i-1], // On prend les 4 premiers du paquet mélangé
+            bet: bet 
+        });
     }
 
     let newGrid = Array(8).fill().map(() => Array(8).fill(0));
