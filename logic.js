@@ -146,7 +146,7 @@ function initGameEngine() {
     gameState.gravityBag.sort(() => Math.random() - 0.5);
 
     let usedNames = [];
-    const misesPossibles = [500, 1000, 2500, 5000, 7500, 75000, 80000, 10000, 25000, 50000, 100000, 150000];
+    const misesPossibles = [1000, 5000, 25000, 100000, 500000, 1000000, 5000000, 25000000, 100000000, 500000000, 1000000000, 5000000000];
 
    // --- NOUVEAU SYSTÈME DE NOMS ALÉATOIRES (MÉLANGEUR) ---
     
