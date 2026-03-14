@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TOPDOG - État d'Esprit</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .mood-container {
+            display: flex; justify-content: space-around; align-items: flex-end;
+            height: 300px; margin: 40px 0; padding: 20px; background: rgba(255,255,255,0.02);
+            border-radius: 20px; border: 1px solid #222;
+        }
+
+        .thermo-wrap { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    /* On force la largeur à 30% sans aucune possibilité de rétrécir */
+    flex: 0 0 30%; 
+}
+
+
+        .thermo-bar {
+            width: 40px; height: 200px; background: #111; border: 1px solid #333;
+            border-radius: 10px; position: relative; overflow: hidden;
+        }
+
+        .fill { position: absolute; bottom: 0; width: 100%; transition: height 0.5s ease-out; }
+
+        .btn-invest {
+    margin-top: 15px; 
+    padding: 12px 2px; /* Un peu plus de hauteur, moins de largeur interne */
+    border-radius: 10px; 
+    border: none;
+    font-weight: bold; 
+    cursor: pointer; 
+    width: 100%; 
+    font-size: 0.75em; /* On réduit très légèrement la police pour la sécurité */
+    
+    /* --- SÉCURITÉ ANTI-DÉFORMATION --- */
+    white-space: nowrap;  /* Interdit au texte de passer sur deux lignes */
+    overflow: hidden;     /* Coupe ce qui dépasse au cas où */
+    text-align: center;
+    display: block;
+}
+
+
+        #fill-green { background: linear-gradient(0deg, #1e5e2f, #2ecc71); box-shadow: 0 0 15px rgba(46, 204, 113, 0.3); }
+        #fill-orange { background: linear-gradient(0deg, #a35d14, #e67e22); box-shadow: 0 0 15px rgba(230, 126, 34, 0.3); }
+        #fill-red { background: linear-gradient(0deg, #7a1111, #ff0000); box-shadow: 0 0 15px rgba(255, 0, 0, 0.3); }
+        .label-val { color: #fff; font-family: monospace; margin-bottom: 5px; font-size: 1.2em; }
+    </style>
+</head>
+<body class="skin-bg">
+    <h1 class="main-title">ÉQUILIBRE</h1>
+    <div class="subtitle">INVESTIR DANS L'IMMATÉRIEL</div>
+
+    <div class="vip-card">
+        <div class="status-bar">
+            <div class="money" id="wallet-display">0 $</div>
+        </div>
+
+        <div class="mood-container">
+            <div class="thermo-wrap">
+                <span id="val-green" class="label-val">0</span>
+                <div class="thermo-bar"><div id="fill-green" class="fill" style="height: 0%;"></div></div>
+                <button onclick="invest('green')" class="btn-invest" style="background: #2ecc71; color: #000;">ZEN</button>
+            </div>
+            <div class="thermo-wrap">
+                <span id="val-orange" class="label-val">0</span>
+                <div class="thermo-bar"><div id="fill-orange" class="fill" style="height: 0%;"></div></div>
+                <button onclick="invest('orange')" class="btn-invest" style="background: #e67e22; color: #fff;">TRISTE</button>
+            </div>
+            <div class="thermo-wrap">
+                <span id="val-red" class="label-val">0</span>
+                <div class="thermo-bar"><div id="fill-red" class="fill" style="height: 0%;"></div></div>
+                <button onclick="invest('red')" class="btn-invest" style="background: #ff0000; color: #fff;">RAGE</button>
+            </div>
+        </div>
+
+        <div id="mood-desc" class="desc-text" style="min-height: 50px;">Sélectionnez une émotion à cultiver...</div>
+        <a href="index.html" class="btn btn-demo">RETOUR</a>
+    </div>
+
+    <script src="mood.js"></script>
+</body>
+</html>
